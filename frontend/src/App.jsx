@@ -1,11 +1,21 @@
 import React from "react";
-import "/index.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import "./index.css";
+import UserLayout from "./components/Layout/UserLayout";
+import AdminLayout from "./components/Layout/AdminLayout";
 
 function App() {
   return (
-    <div>
-      <h1 class="text-3xl font-bold underline">Hello world!</h1>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<UserLayout />}>
+          {/*for user layout*/}
+        </Route>
+        <Route path="/" element={<AdminLayout />}>
+          {/*for admin layout*/}
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
