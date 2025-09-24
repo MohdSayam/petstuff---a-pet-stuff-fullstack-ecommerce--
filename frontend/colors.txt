@@ -1,0 +1,54 @@
+🖌️ UI Element → Color Guide
+🔝 Topbar (small info bar)
+
+Background: bg-emerald-600
+
+Text: text-slate-50
+
+📌 Navbar (logo, links, cart)
+
+Background: bg-white (clean look)
+
+Logo / Brand Name: text-emerald-600 font-bold
+
+Nav Links: text-slate-700 hover:text-emerald-600
+
+Cart Icon: text-amber-500
+
+🛒 Buttons
+
+Primary CTA (e.g. “Add to Cart”): bg-emerald-500 hover:bg-emerald-600 text-white
+
+Secondary (e.g. “View Details”): bg-amber-400 hover:bg-amber-500 text-slate-900
+
+📦 Product Cards
+
+Card Background: bg-white with shadow-md
+
+Title: text-slate-800
+
+Price: text-emerald-600 font-semibold
+
+Discount Tag: bg-rose-400 text-white rounded px-2 py-1 text-xs
+
+🛍️ Cart / Drawer
+
+Background: bg-slate-50
+
+Item Names: text-slate-800
+
+Prices: text-amber-500
+
+Checkout Button: bg-emerald-500 hover:bg-emerald-600 text-white
+
+📄 Page Background
+
+Main background: bg-slate-50
+
+Sections: Use bg-white with rounded corners + shadows for premium feel
+
+📢 Sale Banners
+
+Background: bg-amber-400 text-slate-900 font-bold
+
+Highlight badge: bg-rose-400 text-white

@@ -11,7 +11,7 @@ function App() {
         <Route path="/" element={<UserLayout />}>
           {/*for user layout*/}
         </Route>
-        <Route path="/" element={<AdminLayout />}>
+        <Route path="/admin" element={<AdminLayout />}>
           {/*for admin layout*/}
         </Route>
       </Routes>
