@@ -15,9 +15,7 @@ const CartDrawer = ({ drawerOpen, toggleDrawer }) => {
           <span className="text-emerald-700 font-bold text-lg">
             🛒 Big Sale!
           </span>
-          <span className="text-slate-600 text-sm">
-            Don’t miss out – grab your favorites now!
-          </span>
+          <span className="text-slate-600 text-sm">Don’t miss out!</span>
         </div>
 
         {/* Right side close button */}
