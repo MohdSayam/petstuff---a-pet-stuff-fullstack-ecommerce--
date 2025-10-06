@@ -10,8 +10,6 @@ const Header = () => {
       <TopBar />
       {/* // Now adding Navbar component which is under the header component */}
       <Navbar />
-      {/*adding marquee*/}
-      <Marquee />
     </header>
   );
 };

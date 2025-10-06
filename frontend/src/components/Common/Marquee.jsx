@@ -5,12 +5,12 @@ const Marquee = () => {
 
   return (
     <div
-      className="overflow-hidden bg-emerald-600 text-slate-50 py-2"
+      className="overflow-hidden bg-emerald-600 text-slate-50 py-2 "
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
       <div
-        className="whitespace-nowrap inline-block px-4 text-white font-bold animate-slide md:animate-slide-md"
+        className="whitespace-nowrap inline-block px-4 text-white font-bold animate-slide md:animate-slide-md "
         style={{ animationPlayState: isPaused ? "paused" : "running" }}
       >
         🛒 SALE STARTING FROM $9.99 – LIMITED TIME OFFER! 🛒 Buy Cheap Pet food
