@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/UserSchema");
 
-const protect = (req, res, next) => {
+const protect = async (req, res, next) => {
   // get token from the header and then check jwt
   let token;
   const authHeader = req.header("Authorization");
@@ -16,11 +16,10 @@ const protect = (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // fetch user detailsfrom token
-      const user = User.findById(decoded.user.id).select("-password");
+      const user = await User.findById(decoded.user.id).select("-password");
       if (!user) {
-        return res
-          .status(401)
-          .json({ message: "User not found or token invalid" });
+        res.status(401);
+        return next(new Error("Not authorized, user not found"));
       }
 
       //  Attach the full user object (including 'role') to the request for admin
@@ -29,12 +28,12 @@ const protect = (req, res, next) => {
       next();
     } catch (error) {
       console.error(error);
-      return res.status(401).json({ message: "Not authorized, token failed" });
+      res.status(401);
+      return next(new Error("Not authorized, token failed"));
     }
   } else {
-    return res
-      .status(401)
-      .json({ message: "There is no token, not authorized" });
+    res.status(401);
+    return next(new Error("There is no token , and not authorized"));
   }
 };
 
@@ -43,10 +42,47 @@ const admin = (req, res, next) => {
     // if this condition true he is an admin so we can proceed
     next();
   } else {
-    res.status(401);
+    // 403 is used if you have token but not right role
+    res.status(403);
     console.error("Not an admin check again ");
-    throw new Error("Not authorized as an admin");
+    return next(new Error("Not authorized as an admin"));
   }
 };
 
-module.exports = { protect, admin };
+const isStoreOwner = async (req, res, next) => {
+  try {
+    const productId = req.params.id;
+
+    // 1. Fetch the product and populate the store owner ID
+    const product = await Product.findById(productId).populate({
+      path: "store",
+      select: "owner",
+    });
+
+    if (!product) {
+      res.status(404);
+      return next(new Error(`Product with ID ${productId} not found.`));
+    }
+
+    // 2. CRITICAL CHECK: Verify ownership
+    // Check if the store owner (via the product) matches the logged-in admin
+    if (product.store.owner.toString() !== req.user.id.toString()) {
+      res.status(403); // Forbidden
+      return next(
+        new Error("Access forbidden: You do not own this product's store.")
+      );
+    }
+
+    // 3. Attach product to request for controller reuse
+    req.product = product;
+    next();
+  } catch (error) {
+    console.error(error);
+    res.status(400);
+    return next(
+      new Error("Invalid product ID or database error during ownership check.")
+    );
+  }
+};
+
+module.exports = { protect, admin, isStoreOwner };

@@ -3,18 +3,25 @@ const User = require("../models/UserSchema");
 const bcrypt = require("bcryptjs");
 
 // Register a new user and return a JWT token
-const registerUser = async (req, res) => {
+const registerUser = async (req, res, next) => {
   const { name, email, password, confirmPassword, role } = req.body;
   try {
+    const checkAllDetails = !name || !email || !password || !confirmPassword;
+    if (checkAllDetails) {
+      res.status(400);
+      return next(new Error("Please provide all details"));
+    }
     // 1. Check if user exists
     const userCheck = await User.findOne({ email });
     if (userCheck) {
-      return res.status(400).json({ message: "User already exists" });
+      res.status(400);
+      return next(new Error("User alreadu exists"));
     }
 
     // 2. Validate password match
     if (password !== confirmPassword) {
-      return res.status(400).json({ message: "Passwords don't match" });
+      res.status(400);
+      return next(new Error("Passwords do not match"));
     }
 
     // 3. Hash password
@@ -45,26 +52,29 @@ const registerUser = async (req, res) => {
     res.status(201).json({ token });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500);
+
+    // here we can pass unexpected error like db failure or server error to the middleware
+    next(error);
   }
 };
 
 // Login user and match jwt token
-const loginUser = async (req, res) => {
+const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   try {
     //user check
     const user = await User.findOne({ email });
     if (!user) {
-      return res
-        .status(400)
-        .json({ message: "User does not exist sign up first" });
+      res.status(400);
+      return next(new Error("User does not exists signup first "));
     }
 
     // confirm the user
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid Credentials" });
+      res.status(400);
+      return next(new Error("Invalid credentials"));
     }
 
     // create payload and jwt token
@@ -80,21 +90,22 @@ const loginUser = async (req, res) => {
     res.status(200).json({ token });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error in login" });
+    return next(error);
   }
 };
 
 // get user details
-const getUserDetails = async (req, res) => {
+const getUserDetails = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      res.status(404);
+      return next(new Error("user not found"));
     }
     res.status(200).json(user);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error in get user details" });
+    return next(error);
   }
 };
 

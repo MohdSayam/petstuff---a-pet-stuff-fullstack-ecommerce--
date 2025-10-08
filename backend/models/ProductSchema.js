@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const productSchema = new mongoose.Schema(
   {
     // Name of the product (e.g., 'Pro-Plan Puppy Chow')
-    name: {
+    productName: {
       type: String,
       required: [true, "Product name is required"],
       trim: true,
@@ -42,13 +42,13 @@ const productSchema = new mongoose.Schema(
     animalType: {
       type: String,
       required: [true, "Animal type is required"],
-      enum: ["Dog", "Cat", "Bird", "Other", "Reptile", "Small Pet"],
+      enum: ["Dog", "Cat", "Bird", "Other"],
     },
     // UPDATED: Category based on product function (e.g., 'Food', 'Medicine', 'Toys')
     productType: {
       type: String,
       required: [true, "Product type is required"],
-      enum: ["Food", "Medicine", "Toys", "Accessories", "Grooming", "Snacks"],
+      enum: ["Food", "Medicines", "Toys", "Accessories", "Grooming", "Snacks"],
     },
     // Store that sells this product (One-to-one link to Store)
     store: {
