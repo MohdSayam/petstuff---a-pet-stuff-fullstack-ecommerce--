@@ -34,6 +34,7 @@ const storeSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  timeStamps: true,
 });
 
 module.exports = mongoose.model("Store", storeSchema);

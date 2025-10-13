@@ -61,36 +61,46 @@ const registerUser = async (req, res, next) => {
 
 // Login user and match jwt token
 const loginUser = async (req, res, next) => {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    console.error("DEBUG: req.body is missing or empty.");
+    res.status(400);
+    return next(
+      new Error(
+        "Login failed: Request body is empty. Ensure Postman is set to raw/JSON."
+      )
+    );
+  }
+
   const { email, password } = req.body;
+
   try {
-    //user check
+    // uuser check
     const user = await User.findOne({ email });
     if (!user) {
       res.status(400);
-      return next(new Error("User does not exists signup first "));
+      return next(new Error("User does not exist, sign up first"));
     }
 
-    // confirm the user
+    //  confirm the user (password match)
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       res.status(400);
       return next(new Error("Invalid credentials"));
     }
 
-    // create payload and jwt token
-    const payload = {
-      user: {
-        id: user.id,
-      },
-    };
+    //  create payload and jwt token
+    const payload = { user: { id: user.id } };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
-    res.status(200).json({ token });
+
+    //Send token
+    return res.status(200).json({ token });
   } catch (error) {
     console.error(error);
-    return next(error);
+    res.status(500);
+    return next(new Error("Login failed due to unexpected server error."));
   }
 };
 

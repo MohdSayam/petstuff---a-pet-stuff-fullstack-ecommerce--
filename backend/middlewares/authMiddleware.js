@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/UserSchema");
+const Product = require("../models/ProductSchema");
 
 const protect = async (req, res, next) => {
   // get token from the header and then check jwt
@@ -29,6 +30,13 @@ const protect = async (req, res, next) => {
     } catch (error) {
       console.error(error);
       res.status(401);
+
+      if (error.name === "TokenExpiredError") {
+        return next(new Error("Not authorized, token expired"));
+      } else if (error.name === "JsonWebTokenError") {
+        return next(new Error("Not authorized, invalid token"));
+      }
+
       return next(new Error("Not authorized, token failed"));
     }
   } else {
