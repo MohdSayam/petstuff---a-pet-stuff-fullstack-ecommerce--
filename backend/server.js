@@ -22,6 +22,9 @@ app.use("/api/products", require("./routes/productRoutes"));
 // store routes
 app.use("/api/store", require("./routes/storeRoutes"));
 
+// order routes
+app.use("/api/orders", require("./routes/orderRoutes"));
+
 // Global Error Handlers
 // A. Not Found Handler (404)
 // If a request reaches this line, it means it didn't match any route defined above.
