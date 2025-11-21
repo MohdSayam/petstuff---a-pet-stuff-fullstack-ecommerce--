@@ -1,4 +1,3 @@
-const User = require("../models/UserSchema");
 const Product = require("../models/ProductSchema");
 const Store = require("../models/StoreSchema");
 const Order = require("../models/OrderSchema");

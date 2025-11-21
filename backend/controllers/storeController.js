@@ -69,7 +69,7 @@ const getStoreDetailsToOwner = async (req, res, next) => {
 
     res.status(200).json({ store });
   } catch (error) {
-    console.error("Error fetching store details:", error);
+    console.error("Debug Error", error.name, error.message);
     return sendError(
       res,
       next,

@@ -18,9 +18,6 @@ const {
   getStoreAnalytics,
 } = require("../controllers/productController");
 
-// Public routes
-router.get("/:id", getStoreDetailsToCustomers);
-
 // Routes for store owners (with authentication and authorization) we are using middlewares
 router.post("/create", protect, admin, createStore);
 router.get("/me", protect, admin, getStoreDetailsToOwner);
@@ -30,5 +27,8 @@ router.delete("/me/delete", protect, admin, deleteStore);
 // Routes from product controllers
 router.get("/me/products", protect, admin, getStoreProducts);
 router.get("/me/analytics", protect, admin, getStoreAnalytics);
+
+// Public routes
+router.get("/:id", getStoreDetailsToCustomers);
 
 module.exports = router;
