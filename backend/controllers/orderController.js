@@ -9,74 +9,83 @@ const sendError = (res, next, statusCode, message) => {
   return next(new Error(message));
 };
 
-// this is a helper function
-const updateStock = async (productId, quantity) => {
-  const product = await Product.findById(productId);
-  if (!product) {
-    throw new Error("Product not found");
-  }
-  product.stock -= quantity; // product update ho jayga if order create ho gya to
-  await product.save({ validateBeforeSave: false });
-};
 
 // Create a new order
 const createOrder = async (req, res, next) => {
-  const { shippingInfo, orderItems, itemsPrice, shippingPrice, totalPrice } =
-    req.body;
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  const userId = req.user._id;
   try {
-    if (
-      !shippingInfo ||
-      !orderItems ||
-      orderItems.length === 0 ||
-      !itemsPrice ||
-      !shippingPrice ||
-      !totalPrice
-    ) {
-      return sendError(res, next, 400, "All fields are required");
+    const {shippingInfo,orderItems, itemsPrice,shippingPrice,totalPrice}= req.body
+    const userId = req.user.id // .id from jwt and ._id from mongodb object form so safer is jwt one 
+
+    if (!shippingInfo || orderItems.length === 0 || !itemsPrice || !shippingPrice || !totalPrice){
+      await session.abortTransaction()
+      session.endSession()
+      return sendError(res,next,400, "All fields are required")
     }
 
-    for (const item of orderItems) {
-      const product = await Product.findById(item.product).select("stock");
-      if (!product) {
-        return sendError(
-          res,
-          next,
-          404,
-          `Product not found with id ${item.product}`
-        );
+    // now check stock for all items first 
+    for (const items of orderItems){
+      const product = await Product.findById(item.product).session(session)
+
+      if (!product){
+        await session.abortTransaction()
+        session.endSession()
+        return sendError(res,next,400,`product not found with id: ${item.product}`)
       }
-      if (product.stock < item.quantity) {
-        return sendError(
-          res,
-          next,
-          400,
-          `Only ${product.stock} items left in stock for product: ${item.name}`
-        );
+
+      if (product.stock < item.quantity){
+        await session.abortTransaction()
+        session.endSession()
+        return sendError(res,next,400, `only ${product.stock} items left for ${items.productName}`)
       }
-      await updateStock(item.product, item.quantity);
     }
 
-    const order = await Order.create({
-      shippingPrice,
-      itemsPrice,
-      totalPrice,
-      shippingInfo,
-      orderItems,
-      user: userId,
-    });
+    // now if code runs till now completely now we can reduce the stocks
+    for (const item of orderItems){
+      await Product.findByIdAndUpdate(
+        item.product,
+        {$inc:{stock:-item.quantity}},
+        session
+      )
+    }
+    
+    // now we can create orders safely 
+    const order = await Order.create([
+      {
+        shippingPrice,
+        shippingInfo,
+        orderItems,
+        itemsPrice,
+        totalPrice,
+        user:userId,
+
+      },
+    ],
+      {session}
+    );
+
+    // now finally we can commit the transaction 
+    await session.commitTransaction()
+    session.endSession()
 
     res.status(201).json({
-      success: true,
-      message: "Order created and stock updated successfully",
-      order,
-    });
+      success:true,
+      message:"Order Created Successfully",
+      order: order[0],
+    })
+
   } catch (error) {
-    console.error("Error in creating order", error);
-    return sendError(res, next, 500, "Internal Server Error");
+    // rollback everything if we get error
+    await session.abortTransaction()
+    session.endSession()
+
+    console.error("Order transaction failed", error)
+    return sendError(res,next,500, "Order Creation Failed")
   }
-};
+}
+  
 
 // get single order
 const getSingleOrder = async (req, res, next) => {
