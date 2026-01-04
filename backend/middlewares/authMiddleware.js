@@ -53,7 +53,7 @@ const admin = (req, res, next) => {
     // 403 is used if you have token but not right role
     res.status(403);
     console.error("Not an admin check again ");
-    return next(new Error("Not authorized as an admin"));
+    return next(new Error("Not authorized"));
   }
 };
 

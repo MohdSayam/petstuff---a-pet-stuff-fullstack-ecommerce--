@@ -15,7 +15,7 @@ const registerUser = async (req, res, next) => {
     const userCheck = await User.findOne({ email });
     if (userCheck) {
       res.status(400);
-      return next(new Error("User alreadu exists"));
+      return next(new Error("User already exists"));
     }
 
     // 2. Validate password match
@@ -78,7 +78,7 @@ const loginUser = async (req, res, next) => {
     const user = await User.findOne({ email });
     if (!user) {
       res.status(400);
-      return next(new Error("User does not exist, sign up first"));
+      return next(new Error("Email or password incorrect!"));
     }
 
     //  confirm the user (password match)
