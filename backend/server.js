@@ -2,16 +2,18 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
-const PORT = process.env.PORT || 5000;
 
 // error middlewares import
 const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
 
+// first we have to make sure that we use dotenv.config() without this we can't use .env files
 dotenv.config();
+const PORT = process.env.PORT || 5000;
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // auth routes
 app.use("/api/auth", require("./routes/authRoutes"));
