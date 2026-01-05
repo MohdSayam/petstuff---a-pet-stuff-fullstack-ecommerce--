@@ -16,75 +16,63 @@ const createOrder = async (req, res, next) => {
   session.startTransaction();
 
   try {
-    const {shippingInfo,orderItems, itemsPrice,shippingPrice,totalPrice}= req.body
-    const userId = req.user.id // .id from jwt and ._id from mongodb object form so safer is jwt one 
+    const { shippingInfo, orderItems, itemsPrice, shippingPrice, totalPrice } = req.body;
+    const userId = req.user.id;
 
-    if (!shippingInfo || orderItems.length === 0 || !itemsPrice || !shippingPrice || !totalPrice){
-      await session.abortTransaction()
-      session.endSession()
-      return sendError(res,next,400, "All fields are required")
+    if (!shippingInfo || !orderItems?.length || !itemsPrice || !shippingPrice || !totalPrice) {
+      throw new Error("All fields are required");
     }
 
-    // now check stock for all items first 
-    for (const items of orderItems){
-      const product = await Product.findById(item.product).session(session)
+    // Process each item: Atomic check-and-update
+    for (const item of orderItems) {
+      const updatedProduct = await Product.findOneAndUpdate(
+        { 
+          _id: item.product, 
+          stock: { $gte: item.quantity } // ONLY update if stock is enough
+        },
+        { $inc: { stock: -item.quantity } },
+        { session, new: true }
+      );
 
-      if (!product){
-        await session.abortTransaction()
-        session.endSession()
-        return sendError(res,next,400,`product not found with id: ${item.product}`)
-      }
-
-      if (product.stock < item.quantity){
-        await session.abortTransaction()
-        session.endSession()
-        return sendError(res,next,400, `only ${product.stock} items left for ${items.productName}`)
+      if (!updatedProduct) {
+        // This triggers the catch block, which aborts the transaction automatically
+        throw new Error(`Insufficient stock or product not found: ${item.name}`);
       }
     }
 
-    // now if code runs till now completely now we can reduce the stocks
-    for (const item of orderItems){
-      await Product.findByIdAndUpdate(
-        item.product,
-        {$inc:{stock:-item.quantity}},
-        session
-      )
-    }
-    
-    // now we can create orders safely 
-    const order = await Order.create([
+    // Create the order
+    const [order] = await Order.create([
       {
         shippingPrice,
         shippingInfo,
         orderItems,
         itemsPrice,
         totalPrice,
-        user:userId,
+        user: userId,
+      }
+    ], { session });
 
-      },
-    ],
-      {session}
-    );
-
-    // now finally we can commit the transaction 
-    await session.commitTransaction()
-    session.endSession()
-
+    await session.commitTransaction();
+    
     res.status(201).json({
-      success:true,
-      message:"Order Created Successfully",
-      order: order[0],
-    })
+      success: true,
+      message: "Order Created Successfully",
+      order,
+    });
 
   } catch (error) {
-    // rollback everything if we get error
-    await session.abortTransaction()
-    session.endSession()
-
-    console.error("Order transaction failed", error)
-    return sendError(res,next,500, "Order Creation Failed")
+    // One place to handle all failures
+    await session.abortTransaction();
+    console.error("Transaction Aborted:", error.message);
+    
+    return res.status(error.message.includes("stock") ? 400 : 500).json({
+      success: false,
+      message: error.message,
+    });
+  } finally {
+    session.endSession();
   }
-}
+};
   
 
 // get single order
