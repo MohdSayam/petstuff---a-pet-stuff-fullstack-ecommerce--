@@ -61,15 +61,6 @@ const registerUser = async (req, res, next) => {
 
 // Login user and match jwt token
 const loginUser = async (req, res, next) => {
-  if (!req.body || Object.keys(req.body).length === 0) {
-    console.error("DEBUG: req.body is missing or empty.");
-    res.status(400);
-    return next(
-      new Error(
-        "Login failed: Request body is empty. Ensure Postman is set to raw/JSON."
-      )
-    );
-  }
 
   const { email, password } = req.body;
 
@@ -96,7 +87,15 @@ const loginUser = async (req, res, next) => {
     });
 
     //Send token
-    return res.status(200).json({ token });
+    return res.status(200).json({
+       token,
+       user:{
+        id:user._id,
+        name:user.name,
+        email:user.email,
+        role:user.role
+       } 
+      });
   } catch (error) {
     console.error(error);
     res.status(500);

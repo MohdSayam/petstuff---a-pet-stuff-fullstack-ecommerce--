@@ -1,3 +1,12 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme{
+/* Brand Colors */
+  --color-brand-primary: #f97316;    /* Orange-500 */
+  --color-brand-secondary: #0d9488;  /* Teal-600 */
+  --color-brand-dark: #1e293b;       /* Slate-800 */
+  --color-brand-light: #f8fafc;      /* Slate-50 */
+
+  /* You can also add custom fonts here if you want */
+  --font-display: "Satoshi", "sans-serif";
+}
