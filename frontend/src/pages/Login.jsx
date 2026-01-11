@@ -3,10 +3,14 @@ import { Link , useNavigate} from 'react-router-dom'
 import { useContext } from 'react'
 import { AuthContext } from '../context/AuthContext'
 import API from '../api/axios'
+import toast from 'react-hot-toast'
+import FullPageLoader from '../loading/FullPageLoader'
 
 function Login() {
     const navigate = useNavigate()
     const {login} = useContext(AuthContext);
+    const [loading,setLoading] = useState(false)
+
     const [formData,setFormData]=useState({
         email:"",
         password:""  
@@ -19,14 +23,14 @@ function Login() {
 
     const handleSubmit =async (e)=>{
         e.preventDefault()
+        setLoading(true)
         try {
             const response = await API.post('/auth/login', formData)
             // agar sahi chala yaha tak to 
-            alert("All good you are our guy")
             const { user, token } = response.data;
             login(user, token);
-
-            alert(`Welcome back, ${user.name}!`);
+            
+            toast.success(`Welcome back ${user.name}!🐾`)
         
             // Role-based redirect
             if (user.role === 'admin') {
@@ -35,9 +39,14 @@ function Login() {
                 navigate("/");
             }
         } catch (error) {
-            alert(error.response?.data?.message || "Invalid email or password")
+            toast.error(error.response?.data?.message || "Invalid email or password")
+        }finally{
+            setLoading(false)
         }
-        
+    }
+
+    if (loading){
+        return <FullPageLoader/>
     }
 
   return (
@@ -78,9 +87,21 @@ function Login() {
                 </div>
 
                 {/* Button */}
-                <button  className="w-full rounded-2xl bg-brand-primary py-4 font-bold text-white text-lg shadow-xl shadow-orange-100 hover:brightness-110 active:scale-95 transition-all">
-                    Login
-                </button>
+                <button 
+                    type="submit"
+                    disabled={loading} // Prevent double clicks!
+                    className={`w-full rounded-2xl py-4 font-bold text-white text-lg transition-all ${
+                        loading ? 'bg-orange-300 cursor-not-allowed' : 'bg-brand-primary shadow-xl hover:brightness-110 active:scale-95'
+                    }`}
+                    >
+                    {loading ? (
+                        <span className="flex items-center justify-center gap-2">
+                        Processing... 🐾
+                        </span>
+                    ) : (
+                        "Login"
+                    )}
+                    </button>
             </form>
 
             <div className="mt-8 text-center text-sm text-slate-500">

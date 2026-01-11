@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import API from '../api/axios';
+import toast from 'react-hot-toast';
 
 function Register() {
     const navigate = useNavigate()
+    const [loading, setLoading] = useState(false)
 
     // creating user state according to usermodel
     const [formData, setFormData] = useState({
@@ -21,16 +23,19 @@ function Register() {
 
     const handleSubmit =async (e)=>{
         e.preventDefault()
+        setLoading(true)
         try {
             const response = await API.post('auth/register', formData)
             console.log("Success from backend", response.data)
 
             // if response created successfully then it will run 
-            alert("Account successfully created! You can login now.")
+            toast.success("Account successfully registered 🐾!")
             navigate("/login")
         } catch (error) {
             console.log("Signup Error", error.response?.data)
-            alert(error.response?.data?.message || "Something wrong during signup!")
+            toast.error(error.response?.data?.message || "Something wrong try again!")
+        }finally{
+            setLoading(false)
         }
     }
 
@@ -114,8 +119,20 @@ function Register() {
                 </div>
 
                 {/* Button */}
-                <button className="w-full rounded-2xl bg-brand-primary py-4 font-bold text-white text-lg shadow-xl shadow-orange-100 hover:brightness-110 active:scale-95 transition-all">
-                    Register Now
+                <button 
+                type='submit'
+                disabled={loading}
+                className={`w-full rounded-2xl py-4 font-bold text-white text-lg transition-all ${
+                    loading ? 'bg-orange-300 cursor-not-allowed' : 'bg-brand-primary shadow-xl hover:brightness-110 active:scale-95'
+                }`}
+                >
+               {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                    Processing... 🐾
+                    </span>
+                ) : (
+                    "Register Now"
+                )}
                 </button>
             </form>
 

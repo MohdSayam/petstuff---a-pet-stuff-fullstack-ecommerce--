@@ -22,7 +22,7 @@ router.get("/:id", getProductDetailsToUser);
 // routes using middlewares
 router.post("/create", protect, admin, createProduct);
 router.get("/admin/:id", protect, admin, isStoreOwner, getAdminProductDetails);
-router.put("/admin/:id", protect, admin, isStoreOwner, updateProductDetails);
-router.delete("/admin/:id", protect, admin, isStoreOwner, deleteProduct);
+router.put("/update/:id", protect, admin, isStoreOwner, updateProductDetails);
+router.delete("/delete/:id", protect, admin, isStoreOwner, deleteProduct);
 
 module.exports = router;

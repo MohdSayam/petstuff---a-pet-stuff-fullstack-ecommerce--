@@ -14,7 +14,7 @@ export const AuthProvider = ({children})=>{ // children means every component we
             if (token){
                 try {
                     const res = await API.get('/auth/me')  // hits backend and check token there
-                    setUser(res.data.user)
+                    setUser(res.data)
                 } catch (err) {
                     console.log(err.message)
                     localStorage.removeItem('token') // if token was not there or expired

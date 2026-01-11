@@ -25,8 +25,8 @@ router.put("/me/update", protect, admin, updateStoreDetails);
 router.delete("/me/delete", protect, admin, deleteStore);
 
 // Routes from product controllers
-router.get("/me/products", protect, admin, getStoreProducts);
-router.get("/me/analytics", protect, admin, getStoreAnalytics);
+router.get("/products", protect, admin, getStoreProducts);
+router.get("/analytics", protect, admin, getStoreAnalytics);
 
 // Public routes
 router.get("/:id", getStoreDetailsToCustomers);
