@@ -19,7 +19,7 @@ function App(){
 
       <Routes>
 
-        {/* Home Page we will create this in last landing page is this for guest and customers */}
+        {/* Home Page we will create this in last landing page --- this for guests */}
         <Route path="/" element={ <Home /> } />
 
         {/* Auth Pages */}
