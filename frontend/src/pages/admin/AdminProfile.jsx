@@ -1,6 +1,6 @@
-import React, {useState,useContext} from 'react'
+import React, {useState,useContext, useEffect} from 'react'
 import { AuthContext } from "../../context/AuthContext"
-import { User, Mail, ShieldCheck, Calendar, Save, Edit3, Lock, X} from 'lucide-react';
+import { User, Mail, ShieldCheck, Calendar, Save, Edit3, Lock, X, LogOut} from 'lucide-react';
 import API from '../../api/axios';
 import toast from "react-hot-toast"
 
@@ -8,6 +8,7 @@ function AdminProfile() {
     const {user,setUser} = useContext(AuthContext);
     const [isEditing, setIsEditing] = useState(false)
     const [loading ,setLoading] = useState(false)
+    const {logout} = useContext(AuthContext)
 
     // local state for form
     const [formData, setFormData] = useState({
@@ -18,32 +19,63 @@ function AdminProfile() {
         confirmNewPassword: "",
     });
 
+    useEffect(() => {
+  // Only sync from global user to form if we are NOT in the middle of editing
+    if (user && !isEditing) {
+      setFormData({
+        name: user.name,
+        email: user.email,
+        oldPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+      });
+    }
+  }, [user, isEditing]);
+
+
     // kya kuch change hua hai 
     const hasChanges = 
                     formData.name !== user?.name ||
                     formData.email !== user?.email ||
-                    (formData.oldPassword && formData.newPassword);
+                    (formData.oldPassword && formData.newPassword && formData.confirmNewPassword);
     
     const handleUpdate = async (e) => {
-        e.preventDefault()
-        setLoading(true)
-        try {
-            const res = await API.put('/auth/edit', formData)
-            setUser(res.data.user)
+      e.preventDefault();
+      if (loading) return;
 
-            // ui feedback
-            toast.success("Profile changed! 🐾")
-            setIsEditing(false)
-        } catch (error) {
-              if (error.response?.status === 401) {
-                toast.error("Session expired. Please login again.");
-              } else {
-                toast.error(error.response?.data?.message || "Update Failed");
-              }
-        }finally{
-            setLoading(false);
+      setLoading(true);
+      try {
+          const res = await API.put('/auth/edit', formData);
+
+          // did password changed
+          const isPasswordChanged = formData.newPassword.length > 0;
+
+          if (isPasswordChanged){
+            toast.success("Password Changed Successfully! Please login again!")
+            setTimeout(() => {
+              logout()
+            }, 2000);
+          } else{
+            // SUCCESS PATH
+            // 1. Update global state (This refreshes the Sidebar/Header/Card)
+            setUser(res.data.user); 
+            
+            // 2. Close the form
+            setIsEditing(false);
+            
+            toast.success("Profile updated successfully! 🐾");
+          }
+      } catch (error) {
+          if (error.response) {
+            toast.error(error.response.data.message || "Update failed");
+        } else {
+            console.error("Frontend Logic Error:", error);
+            toast.error("UI Sync Error. Please refresh.");
         }
-    }
+      } finally {
+          setLoading(false);
+      }
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-10">
@@ -165,12 +197,13 @@ function AdminProfile() {
                   type="submit"
                   disabled={!hasChanges || loading}
                   className={`w-full md:w-max px-10 py-4 rounded-2xl font-black text-white flex items-center justify-center gap-2 transition-all shadow-xl ${
-                    !hasChanges || loading 
-                      ? 'bg-slate-200 cursor-not-allowed shadow-none' 
-                      : 'bg-brand-primary shadow-orange-100 hover:scale-105 active:scale-95'
+                    !hasChanges || loading
+                      ? "bg-slate-200 cursor-not-allowed shadow-none"
+                      : "bg-brand-primary shadow-orange-100 hover:scale-105 active:scale-95"
                   }`}
                 >
-                  <Save size={20}/> {loading ? "Saving..." : "Save Changes"}
+                  <Save size={20} />
+                  {loading ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             )}

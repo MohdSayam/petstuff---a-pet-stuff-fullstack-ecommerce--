@@ -12,6 +12,8 @@ import AdminProducts from "./pages/admin/AdminProducts.jsx";
 import ProductForm from "./pages/admin/ProductForm.jsx";
 import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
 import AdminProfile from "./pages/admin/AdminProfile.jsx";
+import UserLayout from "./components/layout/UserLayout.jsx";
+import UserRoute from "./components/common/UserRoute.jsx"
 
 function App(){
   return (
@@ -45,6 +47,16 @@ function App(){
 
             <Route path="analytics" element={<AdminAnalytics/>} />
             <Route path="profile" element={<AdminProfile/>} />
+        </Route>
+
+        {/* Customer Routes */}
+        <Route path="/customer" element={
+          <UserRoute>
+            <UserLayout/>
+          </UserRoute>
+        } >
+          {/* Children of customer routes  */}
+
         </Route>
         
         {/* The '*' path acts as a 404 Page Not Found */}

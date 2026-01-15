@@ -36,7 +36,7 @@ function Login() {
             if (user.role === 'admin') {
                 navigate("/admin");
             } else {
-                navigate("/");
+                navigate("/customer");
             }
         } catch (error) {
             toast.error(error.response?.data?.message || "Invalid email or password")

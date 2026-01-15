@@ -173,7 +173,7 @@ const ProductForm = ({ mode = "add" }) => {
               <div className="space-y-2">
                 <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">Category</label>
                 <select name="productType" value={formData.productType} onChange={handleChange} className="w-full p-4 bg-slate-50 rounded-2xl outline-none cursor-pointer">
-                  <option>Food</option><option>Toys</option><option>Accessories</option><option>Medicines</option>
+                  <option>Food</option><option>Toys</option><option>Accessories</option><option>Medicines</option><option>Snacks</option><option>Grooming</option>
                 </select>
               </div>
             </div>

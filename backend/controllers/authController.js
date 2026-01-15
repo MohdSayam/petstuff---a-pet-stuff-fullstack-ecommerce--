@@ -190,16 +190,12 @@ const editUserDetails = async (req, res, next) => {
     }
 
     // save user finally
-    await user.save();
+    const updatedUser = user.toObject();
+    delete updatedUser.password;
 
     return res.status(200).json({
       message: "User updated successfully!",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
+      user: updatedUser // This now includes createdAt, _id, etc.
     });
 
     } catch (error) {
