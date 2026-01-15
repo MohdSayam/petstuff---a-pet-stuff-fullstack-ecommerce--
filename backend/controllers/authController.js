@@ -118,4 +118,96 @@ const getUserDetails = async (req, res, next) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getUserDetails };
+// edit user details 
+const editUserDetails = async (req, res, next) => {
+    const {
+      name,
+      email,
+      oldPassword,
+      newPassword,
+      confirmNewPassword
+    } = req.body;
+
+    try{ 
+    // 1: get logged in user
+    const user = await User.findById(req.user.id)
+    if (!user){
+      res.status(404)
+      return next(new Error("User not found"))
+    }
+
+    let isUpdated = false;
+
+    // 2: name update logic
+    if (name && name !== user.name){
+      user.name = name
+      isUpdated = true;
+    }
+
+    // 3: email update logic
+    if (email && email !== user.email){
+      const isEmailExists = await User.findOne({email});
+      if (isEmailExists){
+        res.status(400)
+        return next(new Error("Email already in use"))
+      }
+      user.email = email
+      isUpdated = true
+    }
+
+    // password update logic
+    if (oldPassword || newPassword || confirmNewPassword){
+      if (!oldPassword || !newPassword || !confirmNewPassword){
+        res.status(400)
+        return next(new Error("All password fields are required!"));
+      }
+
+      const isOldPasswordMatch = await bcrypt.compare(oldPassword, user.password)
+      if (!isOldPasswordMatch){
+        res.status(400)
+        return next(new Error("Old password is incorrect"))
+      }
+
+      const isSamePassword = await bcrypt.compare(newPassword, user.password)
+      if (isSamePassword){
+        res.status(400)
+        return next(new Error("New password must be different from old password"))
+      }
+
+      if (newPassword !==confirmNewPassword){
+        res.status(400)
+        return next(new Error("Both passwords must be same"))
+      }
+
+      user.password = await bcrypt.hash(newPassword,10)
+      isUpdated= true;
+    }
+
+    // No changes check
+    if (!isUpdated){
+      res.status(400)
+      return next(new Error("No changes deteckted to update"))
+    }
+
+    // save user finally
+    await user.save();
+
+    return res.status(200).json({
+      message: "User updated successfully!",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+
+    } catch (error) {
+      console.error(error)
+      res.status(500)
+      return next(new Error("Failed to update profile!"))
+    }
+}
+
+
+module.exports = { registerUser, loginUser, getUserDetails, editUserDetails };

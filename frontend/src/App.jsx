@@ -10,6 +10,8 @@ import AdminStore from "./pages/admin/AdminStore.jsx";
 import CreateStoreForm from "./pages/admin/CreateStoreForm.jsx";
 import AdminProducts from "./pages/admin/AdminProducts.jsx";
 import ProductForm from "./pages/admin/ProductForm.jsx";
+import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
+import AdminProfile from "./pages/admin/AdminProfile.jsx";
 
 function App(){
   return (
@@ -40,6 +42,9 @@ function App(){
             <Route path="products" element={< AdminProducts />} />
             <Route path="products/add" element={< ProductForm mode="add" />} />
             <Route path="products/edit/:id" element={< ProductForm mode="edit" />} />
+
+            <Route path="analytics" element={<AdminAnalytics/>} />
+            <Route path="profile" element={<AdminProfile/>} />
         </Route>
         
         {/* The '*' path acts as a 404 Page Not Found */}
