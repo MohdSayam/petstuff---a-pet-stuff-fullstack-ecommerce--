@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import API from '../../api/axios';
 import ProductFilter from '../../components/customer/ProductFilter';
 import { Filter, ShoppingBag } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const ShopPage = () => {
     // FIX: We must destructure 'setSearchParams' here to use it later
@@ -69,45 +70,51 @@ const ShopPage = () => {
                     
                     {products.length > 0 ? products.map(product => (
                         <div key={product._id} className="group flex flex-col bg-white rounded-4xl border border-slate-100 p-4 hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500">
-                             
-                             {/* Image Container */}
-                             <div className="aspect-4/5 bg-slate-50 rounded-3xl overflow-hidden relative mb-5">
-                                <img 
-                                    src={product.images[0]?.url} 
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                                    alt={product.productName} 
-                                />
-                                {product.discountPercentage > 0 && (
-                                    <div className="absolute top-4 left-4 bg-brand-primary text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-orange-500/20">
-                                        -{product.discountPercentage}%
-                                    </div>
-                                )}
-                             </div>
+    
+                            {/* Image Container - CHANGED div TO Link */}
+                            <Link to={`/product/${product._id}`} className="block aspect-4/5 bg-slate-50 rounded-3xl overflow-hidden relative mb-5 cursor-pointer">
+                            <img 
+                                src={product.images[0]?.url} 
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                                alt={product.productName} 
+                            />
+                            {product.discountPercentage > 0 && (
+                                <div className="absolute top-4 left-4 bg-brand-primary text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-orange-500/20">
+                                    -{product.discountPercentage}%
+                                </div>
+                            )}
+                            </Link>
 
-                             {/* Product Details */}
-                             <div className="flex-1 flex flex-col">
-                                 <div className="flex justify-between items-start">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{product.animalType}</span>
-                                    <span className="text-[10px] font-black text-brand-secondary uppercase tracking-widest bg-teal-50 px-2 py-1 rounded-lg">{product.productType}</span>
-                                 </div>
-                                 
-                                 <h3 className="font-bold text-slate-800 text-lg line-clamp-1 mt-2 mb-1 group-hover:text-brand-primary transition-colors">
-                                     {product.productName}
-                                 </h3>
-                                 
-                                 {/* Bottom Row: Price & Add Button */}
-                                 <div className="mt-auto pt-4 flex items-center justify-between border-t border-slate-50">
-                                    <div className="flex flex-col">
-                                        {product.discountPercentage > 0 && (
-                                            <span className="text-xs font-bold text-slate-400 line-through">${product.originalPrice}</span>
-                                        )}
-                                        <span className="text-2xl font-black text-slate-900">${product.salePrice}</span>
-                                    </div>
-                                    <button onClick={()=> addToCart(product)} className="h-12 w-12 flex items-center justify-center bg-slate-900 text-white rounded-2xl hover:bg-brand-primary hover:scale-110 hover:rotate-3 transition-all duration-300 shadow-xl shadow-slate-900/10">
-                                        <ShoppingBag size={20}/>
-                                    </button>
-                                 </div>
-                             </div>
+                            {/* Product Details */}
+                            <div className="flex-1 flex flex-col">
+                                {/* ... rest of your details code ... */}
+                                <div className="flex justify-between items-start">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{product.animalType}</span>
+                                <span className="text-[10px] font-black text-brand-secondary uppercase tracking-widest bg-teal-50 px-2 py-1 rounded-lg">{product.productType}</span>
+                                </div>
+                                
+                                {/* Make the title clickable too for better UX */}
+                                <Link to={`/product/${product._id}`}>
+                                    <h3 className="font-bold text-slate-800 text-lg line-clamp-1 mt-2 mb-1 group-hover:text-brand-primary transition-colors cursor-pointer">
+                                        {product.productName}
+                                    </h3>
+                                </Link>
+                                
+                                {/* Bottom Row: Price & Add Button */}
+                                <div className="mt-auto pt-4 flex items-center justify-between border-t border-slate-50">
+                                <div className="flex flex-col">
+                                    {product.discountPercentage > 0 && (
+                                        <span className="text-xs font-bold text-slate-400 line-through">${product.originalPrice}</span>
+                                    )}
+                                    <span className="text-2xl font-black text-slate-900">${product.salePrice}</span>
+                                </div>
+                                
+                                {/* Add to Cart Button (Keep this as a button, don't link it!) */}
+                                <button onClick={()=> addToCart(product)} className="h-12 w-12 flex items-center justify-center bg-slate-900 text-white rounded-2xl hover:bg-brand-primary hover:scale-110 hover:rotate-3 transition-all duration-300 shadow-xl shadow-slate-900/10">
+                                    <ShoppingBag size={20}/>
+                                </button>
+                                </div>
+                            </div>
                         </div>
                     )) : (
                         !isFetching && (

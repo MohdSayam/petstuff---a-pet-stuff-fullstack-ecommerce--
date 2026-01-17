@@ -110,7 +110,12 @@ const getSingleOrder = async (req, res, next) => {
 const myOrders = async (req, res, next) => {
   const userId = req.user._id;
   try {
-    const orders = await Order.find({ user: userId });
+    const orders = await Order.find({ user: userId })
+      .populate({
+        path : 'orderItems.product',
+        select: 'images'
+      }).sort({createdAt: -1})
+      
     if (!orders || orders.length === 0) {
       return sendError(res, next, 404, "You have no orders");
     }

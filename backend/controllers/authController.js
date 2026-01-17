@@ -188,6 +188,7 @@ const editUserDetails = async (req, res, next) => {
       res.status(400)
       return next(new Error("No changes deteckted to update"))
     }
+    await user.save();
 
     // save user finally
     const updatedUser = user.toObject();

@@ -6,6 +6,7 @@ import { Menu, Plus, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const AdminLayout = () => {
+    // eslint-disable-next-line no-unused-vars
     const navigate = useNavigate()
     const { user, logout } = useContext(AuthContext)
     const [isOpen, setIsOpen] = useState(false)
@@ -49,19 +50,6 @@ const AdminLayout = () => {
 
         {/* RIGHT SECTION: Quick Actions + Profile */}
         <div className="flex items-center gap-2 md:gap-4">
-            
-            {/* Add Product Button 
-                - Icon only on small screens (sm)
-                - Text + Icon on medium screens (md)
-            */}
-            <button
-                onClick={() => navigate('/admin/products/add')}
-                className="flex items-center gap-2 bg-brand-primary text-white p-2 md:px-4 md:py-2 rounded-xl font-bold text-sm shadow-lg shadow-orange-200 hover:scale-105 active:scale-95 transition-all"
-            >
-                <Plus size={18} />
-                <span className="hidden md:block">Add Product</span>
-            </button>
-
             {/* Profile Group */}
             <div className="flex items-center gap-2 md:gap-3 border-l border-slate-100 pl-2 md:pl-4">
                 {/* Name hidden on mobile to save space */}

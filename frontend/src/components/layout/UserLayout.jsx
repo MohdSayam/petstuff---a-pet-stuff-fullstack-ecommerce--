@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import UserNavbar from "../customer/UserNavbar";
+import UserFooter from "../customer/UserFooter"
 
 const UserLayout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,15 +11,18 @@ const UserLayout = () => {
   };
 
   return (
-    <div className="user-layout min-h-screen flex flex-col bg-slate-50">
-      {/* We pass both the state and the function to the Navbar */}
-      <UserNavbar toggleMenu={toggleMenu} isMenuOpen={isMenuOpen} />
+    <div className="flex flex-col min-h-screen bg-white">
+            {/* 1. Global Navbar */}
+            <UserNavbar toggleMenu={toggleMenu} isMenuOpen={isMenuOpen} />
 
-      <main className="grow">
-        <Outlet /> 
-      </main>
+            {/* 2. Main Content (The Pages) */}
+            {/* flex-1 ensures the footer is pushed to the bottom even if content is short */}
+            <main className="flex-1 w-full">
+                <Outlet />
+            </main>
 
-      {/* Footer can go here later */}
+            {/* 3. Global Footer */}
+            <UserFooter />
     </div>
   );
 };

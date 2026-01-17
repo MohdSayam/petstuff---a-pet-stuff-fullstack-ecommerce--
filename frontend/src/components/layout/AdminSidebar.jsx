@@ -9,7 +9,8 @@ import {
   BarChart3, 
   User, 
   LogOut, 
-  X 
+  X,
+  Globe
 } from 'lucide-react'; 
 
 // isOpen, logout and toggleSidebar is props from the AdminLayout
@@ -70,6 +71,16 @@ const AdminSidebar = ({isOpen, toggleSidebar, logout})=>{
               </Link>
             );
           })}
+
+          <div className="pt-4 mt-4 border-t border-slate-800">
+                    <Link
+                        to="/" // Goes to Public Home Page
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-brand-primary/10 hover:text-brand-primary transition-all duration-200 group"
+                    >
+                        <Globe size={20} className="group-hover:rotate-12 transition-transform" />
+                        <span className="font-semibold text-sm">View Live Shop</span>
+                    </Link>
+            </div>
         </nav>
 
         {/* logout button */}

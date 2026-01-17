@@ -1,6 +1,5 @@
-import React, { useState } from 'react'
-import { Link , useNavigate} from 'react-router-dom'
-import { useContext } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
 import API from '../api/axios'
 import toast from 'react-hot-toast'
@@ -8,31 +7,47 @@ import FullPageLoader from '../loading/FullPageLoader'
 
 function Login() {
     const navigate = useNavigate()
-    const {login} = useContext(AuthContext);
-    const [loading,setLoading] = useState(false)
+    const { login, user } = useContext(AuthContext); 
+    
+    // State 1: Page Loading (Waiting for Auth Check)
+    const [pageLoading, setPageLoading] = useState(true);
+    // State 2: Submitting Form
+    const [submitting, setSubmitting] = useState(false);
 
-    const [formData,setFormData]=useState({
-        email:"",
-        password:""  
+    const [formData, setFormData] = useState({
+        email: "",
+        password: ""
     })
 
-    const handleChange = (e)=>{
-        const {name, value} = e.target
-        setFormData({...formData, [name]:value})
+    // --- RESTRICT ACCESS ---
+    useEffect(() => {
+        if (user) {
+            // Already logged in? Go to dashboard.
+            const target = user.role === 'admin' ? '/admin' : '/customer/profile';
+            navigate(target, { replace: true });
+        } else {
+            // Not logged in? Show form.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setPageLoading(false);
+        }
+    }, [user, navigate]);
+
+
+    const handleChange = (e) => {
+        const { name, value } = e.target
+        setFormData({ ...formData, [name]: value })
     }
 
-    const handleSubmit =async (e)=>{
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        setLoading(true)
+        setSubmitting(true)
         try {
             const response = await API.post('/auth/login', formData)
-            // agar sahi chala yaha tak to 
             const { user, token } = response.data;
             login(user, token);
-            
-            toast.success(`Welcome back ${user.name}!🐾`)
-        
-            // Role-based redirect
+
+            toast.success(`Welcome back ${user.name}! 🐾`)
+
             if (user.role === 'admin') {
                 navigate("/admin");
             } else {
@@ -40,77 +55,57 @@ function Login() {
             }
         } catch (error) {
             toast.error(error.response?.data?.message || "Invalid email or password")
-        }finally{
-            setLoading(false)
+            setSubmitting(false) 
         }
     }
 
-    if (loading){
-        return <FullPageLoader/>
-    }
+    if (pageLoading) return <FullPageLoader />;
 
-  return (
-     <div className='flex min-h-screen items-center justify-center bg-brand-light px-4 py-10'>
-        {/* form details div inside that main div */}
-        <div className='w-full sm:max-w-md md:w-[45%] lg:w-[35%] xl:w-[30%] rounded-3xl bg-white p-8 md:p-10 shadow-2xl border border-slate-100'>
+    return (
+        <div className='w-full bg-white rounded-4xl p-8 md:p-10 shadow-xl shadow-slate-200 border border-slate-100 animate-in fade-in zoom-in duration-300'>
             
-            <h1 className='text-3xl font-extrabold text-brand-dark mb-2 text-center'>PetStuff 🐾</h1>
-            <p className='text-center text-slate-500 mb-8'>Hello! How is your pet.</p>
-            
-            <form onSubmit={handleSubmit}>
-                {/* Email Field */}
-                <div className='mb-5'>
-                    <label className='block text-sm font-bold text-slate-700 mb-2'>Email Address</label>
+            <div className="text-center mb-8">
+                <h2 className='text-2xl font-black text-slate-900'>Welcome Back</h2>
+                <p className='text-slate-400 font-bold text-sm mt-1'>Please login to continue</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
                     <input
-                        type="email"
-                        name='email'
-                        value={formData.email}
-                        onChange= {handleChange}
-                        placeholder='john@example.com'
-                        className='w-full rounded-xl border border-slate-200 p-3 outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all'
+                        type="email" name='email' value={formData.email} onChange={handleChange} placeholder='Email Address'
+                        className='w-full rounded-2xl bg-slate-50 border-transparent focus:bg-white border-2 p-4 outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary font-bold text-slate-700 transition-all placeholder:text-slate-400'
                         required
                     />
                 </div>
 
-                {/* Password Field */}
-                <div className='mb-5'>
-                    <label className='block text-sm font-bold text-slate-700 mb-2'>Password</label>
-                    <input 
-                        type="password"
-                        name='password'
-                        value={formData.password}
-                        onChange={handleChange}
-                        placeholder='••••••••'
-                        className='w-full rounded-xl border border-slate-200 p-3 outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all'
+                <div>
+                    <input
+                        type="password" name='password' value={formData.password} onChange={handleChange} placeholder='Password'
+                        className='w-full rounded-2xl bg-slate-50 border-transparent focus:bg-white border-2 p-4 outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary font-bold text-slate-700 transition-all placeholder:text-slate-400'
                         required
                     />
                 </div>
 
-                {/* Button */}
-                <button 
-                    type="submit"
-                    disabled={loading} // Prevent double clicks!
-                    className={`w-full rounded-2xl py-4 font-bold text-white text-lg transition-all ${
-                        loading ? 'bg-orange-300 cursor-not-allowed' : 'bg-brand-primary shadow-xl hover:brightness-110 active:scale-95'
+                <div className="text-right">
+                    <Link to="/forgot-password" className="text-xs font-bold text-slate-400 hover:text-brand-primary">Forgot Password?</Link>
+                </div>
+
+                <button
+                    type="submit" disabled={submitting}
+                    className={`w-full rounded-2xl py-4 font-black text-white text-lg transition-all shadow-xl shadow-brand-primary/20 ${
+                        submitting ? 'bg-slate-300 cursor-not-allowed shadow-none' : 'bg-brand-primary hover:scale-[1.02] active:scale-95'
                     }`}
-                    >
-                    {loading ? (
-                        <span className="flex items-center justify-center gap-2">
-                        Processing... 🐾
-                        </span>
-                    ) : (
-                        "Login"
-                    )}
-                    </button>
+                >
+                    {submitting ? "Logging In..." : "Login"}
+                </button>
             </form>
 
-            <div className="mt-8 text-center text-sm text-slate-500">
-                Hey you have to register first!
-                <Link to="/register" className='text-brand-primary font-bold hover:underline ml-1'>Register Now</Link>
+            <div className="mt-8 text-center text-sm font-bold text-slate-500">
+                New to the pack? 
+                <Link to="/register" className='text-brand-primary hover:underline ml-1'>Create Account</Link>
             </div>
         </div>
-    </div>
-  )
+    )
 }
 
 export default Login

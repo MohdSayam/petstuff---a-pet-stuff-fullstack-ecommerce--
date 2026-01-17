@@ -35,7 +35,7 @@ const AdminDashboard = ()=> {
     
 
     // extracting values from analytics which we want to show 
-    const revenue = analytics?.sales?.totalRevenue || 0
+    const revenue = analytics?.sales?.totalRevenue.toFixed(2) || 0
     const orders = analytics?.sales?.totalOrders || 0
     const products = analytics?.inventory?.totalProducts || 0
     // we are creating average order value -- aov

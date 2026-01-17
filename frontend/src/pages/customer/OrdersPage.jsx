@@ -52,11 +52,34 @@ return (
                             
                             {/* Order Info */}
                             <div className="flex gap-4">
-                                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center shrink-0">
-                                    <Package className="text-brand-primary" size={24} />
+    
+                                {/* VISUAL UPDATE: Product Image Thumbnail */}
+                                <div className="w-20 h-20 bg-slate-50 rounded-2xl overflow-hidden shrink-0 border border-slate-100 relative">
+                                    {order.orderItems[0]?.product?.images?.[0]?.url ? (
+                                        <>
+                                            <img 
+                                                src={order.orderItems[0].product.images[0].url} 
+                                                alt="Order Thumbnail" 
+                                                className="w-full h-full object-cover"
+                                            />
+                                            {/* If multiple items, show a small badge "+2" */}
+                                            {order.orderItems.length > 1 && (
+                                                <div className="absolute bottom-0 right-0 bg-slate-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-tl-lg">
+                                                    +{order.orderItems.length - 1}
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        // Fallback if product was deleted
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <Package className="text-slate-300" size={24} />
+                                        </div>
+                                    )}
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-900">Order #{order._id.slice(-6)}</h3>
+
+                                {/* Order Text Details */}
+                                <div className="flex flex-col justify-center">
+                                    <h3 className="font-bold text-slate-900 text-lg">{order.orderItems[0]?.name}</h3>
                                     <div className="flex items-center gap-4 mt-1 text-xs font-bold text-slate-400 uppercase tracking-wide">
                                         <span className="flex items-center gap-1"><Calendar size={12}/> {new Date(order.createdAt).toLocaleDateString()}</span>
                                         <span className="flex items-center gap-1"><Clock size={12}/> {order.orderItems.length} Items</span>
