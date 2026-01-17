@@ -1,26 +1,26 @@
-import React, {useState} from 'react'
-import { Outlet } from 'react-router-dom'
-import UserNavbar from '../customer/UserNavbar'
-// footer
+import { useState } from "react";
+import { Outlet } from "react-router-dom";
+import UserNavbar from "../customer/UserNavbar";
 
-function UserLayout() {
-    const [isMenuOpen, setIsMenuOpen] = useState(false)
+const UserLayout = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans text-slate-900">
-            {/* 1. THE NAVBAR (Non-Sticky as requested) */}
-            <UserNavbar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
+    <div className="user-layout min-h-screen flex flex-col bg-slate-50">
+      {/* We pass both the state and the function to the Navbar */}
+      <UserNavbar toggleMenu={toggleMenu} isMenuOpen={isMenuOpen} />
 
-            {/* 2. THE MAIN SHOWROOM */}
-            <main className="flex-1 max-w-7xl mx-auto w-full px-4 md:px-6 py-8">
-                <Outlet />
-            </main>
+      <main className="grow">
+        <Outlet /> 
+      </main>
 
-            {/* 3. THE FOOTER */}
-            <UserFooter />
-        </div>
-  )
-}
+      {/* Footer can go here later */}
+    </div>
+  );
+};
 
-export default UserLayout
+export default UserLayout;

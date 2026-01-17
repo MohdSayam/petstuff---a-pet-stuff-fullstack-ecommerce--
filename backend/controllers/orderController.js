@@ -19,7 +19,7 @@ const createOrder = async (req, res, next) => {
     const { shippingInfo, orderItems, itemsPrice, shippingPrice, totalPrice } = req.body;
     const userId = req.user.id;
 
-    if (!shippingInfo || !orderItems?.length || !itemsPrice || !shippingPrice || !totalPrice) {
+    if (!shippingInfo || !orderItems?.length || itemsPrice === undefined || shippingPrice===undefined || totalPrice === undefined) {
       throw new Error("All fields are required");
     }
 

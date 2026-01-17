@@ -14,52 +14,60 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
 import AdminProfile from "./pages/admin/AdminProfile.jsx";
 import UserLayout from "./components/layout/UserLayout.jsx";
 import UserRoute from "./components/common/UserRoute.jsx"
+import CartPage from "./pages/customer/CartPage.jsx";
+import CheckoutPage from "./pages/customer/CheckoutPage.jsx";
+import OrdersPage from "./pages/customer/OrdersPage.jsx";
+import OrdersDetailsPage from "./pages/customer/OrdersDetailsPage.jsx";
+
+// NEW: Import the ShopPage (Make sure this file exists in pages/customer/ShopPage.jsx)
+import ShopPage from "./pages/customer/ShopPage.jsx";
 
 function App(){
   return (
     <div className="app">
-      {/* this componentwill listen all toast calls and return them */}
       <Toaster position="top-center" reverseOrder={false}/>
 
       <Routes>
-
-        {/* Home Page we will create this in last landing page --- this for guests */}
+        {/* --- PUBLIC GUEST ROUTES --- */}
+        {/* These don't have a Layout yet in your version, which is fine! */}
         <Route path="/" element={ <Home /> } />
-
-        {/* Auth Pages */}
         <Route path="/login" element={ <Login /> } />
         <Route path="/register" element={ <Register /> } />
+        
+        {/* NEW: Shop page and cart page is also public for guests */}
+        <Route path="/shop" element={ <ShopPage /> } />
+        <Route path="/cart" element={ <CartPage /> } />
 
-        {/* Admin Dashboard  */}
+        {/* --- ADMIN DASHBOARD --- */}
         <Route path="/admin" element={
           <AdminRoute>
             <AdminLayout/>
           </AdminRoute>
           }>
-            {/* these are child routes that go in the < Outlet/> */}
-            <Route index element={<AdminDashboard/>} />  {/* as /admin */}
-            <Route path="store" element={<AdminStore/>} />  {/* as /admin/store */}
+            <Route index element={<AdminDashboard/>} />
+            <Route path="store" element={<AdminStore/>} />
             <Route path="store/create" element={<CreateStoreForm />} />
-
             <Route path="products" element={< AdminProducts />} />
             <Route path="products/add" element={< ProductForm mode="add" />} />
             <Route path="products/edit/:id" element={< ProductForm mode="edit" />} />
-
             <Route path="analytics" element={<AdminAnalytics/>} />
             <Route path="profile" element={<AdminProfile/>} />
         </Route>
 
-        {/* Customer Routes */}
+        {/* --- CUSTOMER PROTECTED ROUTES --- */}
         <Route path="/customer" element={
           <UserRoute>
             <UserLayout/>
           </UserRoute>
         } >
-          {/* Children of customer routes  */}
+          {/* Children of customer routes render inside UserLayout's <Outlet/> */}
+          <Route path="profile" element={<h1>Customer Profile</h1>} />
+          <Route path="orders" element={<OrdersPage/>} />
+          <Route path="orders/:id" element={<OrdersDetailsPage/>} />
+          <Route path="checkout" element={<CheckoutPage/>} />
 
         </Route>
         
-        {/* The '*' path acts as a 404 Page Not Found */}
        <Route path="*" element={ <h1>404 Page Not Found</h1> } /> 
       </Routes>
     </div>
