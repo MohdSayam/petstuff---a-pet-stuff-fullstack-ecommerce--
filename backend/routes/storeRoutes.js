@@ -29,6 +29,6 @@ router.get("/products", protect, admin, getStoreProducts);
 router.get("/analytics", protect, admin, getStoreAnalytics);
 
 // Public routes
-router.get("/:id", getStoreDetailsToCustomers);
+router.get("/public/:id", getStoreDetailsToCustomers);
 
 module.exports = router;

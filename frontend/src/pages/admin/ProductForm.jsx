@@ -18,7 +18,7 @@ const ProductForm = ({ mode = "add" }) => {
     description: "",
     originalPrice: "",
     salePrice: "",
-    discountPercentage: 0,
+    discountPercentage: "",
     stock: "",
     animalType: "Dog",
     productType: "Food",
@@ -51,20 +51,40 @@ const ProductForm = ({ mode = "add" }) => {
 
   // 2. Auto-calculate Sale Price
   useEffect(() => {
-    const original = parseFloat(formData.originalPrice);
-    const discount = parseFloat(formData.discountPercentage);
+  const original = Number(formData.originalPrice);
+  const discount = Number(formData.discountPercentage || 0);
 
-    if (original && !isNaN(discount)) {
-      const reduction = (original * discount) / 100;
-      const finalPrice = (original - reduction).toFixed(2);
-      setFormData(prev => ({ ...prev, salePrice: finalPrice }));
-    }
-  }, [formData.originalPrice, formData.discountPercentage]);
+  if (!isNaN(original) && original > 0) {
+    const reduction = (original * discount) / 100;
+    const finalPrice = (original - reduction).toFixed(2);
 
+    setFormData(prev => ({
+      ...prev,
+      salePrice: finalPrice
+    }));
+  }
+}, [formData.originalPrice, formData.discountPercentage]);
   // 3. Handlers
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    if (name === "discountPercentage") {
+    // Allow empty while typing
+    if (value === "") {
+      setFormData({ ...formData, discountPercentage: "" });
+      return;
+    }
+
+    const intValue = Math.max(0, Math.min(100, Number(value)));
+
+    setFormData({
+      ...formData,
+      discountPercentage: intValue
+    });
+    return;
+  }
+
+  setFormData({ ...formData, [name]: value });
+
   };
 
   const handleImageChange = (index, value) => {
@@ -167,7 +187,7 @@ const ProductForm = ({ mode = "add" }) => {
               <div className="space-y-2">
                 <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">Animal Type</label>
                 <select name="animalType" value={formData.animalType} onChange={handleChange} className="w-full p-4 bg-slate-50 rounded-2xl outline-none cursor-pointer">
-                  <option>Dog</option><option>Cat</option><option>Bird</option><option>Fish</option>
+                  <option>Dog</option><option>Cat</option><option>Bird</option><option>Other</option>
                 </select>
               </div>
               <div className="space-y-2">
@@ -187,7 +207,19 @@ const ProductForm = ({ mode = "add" }) => {
                 <label className="text-xs font-black uppercase text-brand-primary tracking-widest ml-1 flex items-center gap-1">
                   <Percent size={12}/> Discount %
                 </label>
-                <input type="number" name="discountPercentage" min="0" max="100" value={formData.discountPercentage} onChange={handleChange} className="w-full p-4 bg-orange-50 text-brand-primary font-black rounded-2xl outline-none border border-orange-100" />
+                <input
+                type="number"
+                name="discountPercentage"
+                min="0"
+                max="100"
+                value={formData.discountPercentage}
+                onChange={handleChange}
+                onBlur= { ()=> {
+                  if (formData.discountPercentage === "") {
+                    setFormData(prev => ({...prev, discountPercentage:0}))
+                  }
+                }}
+                className="w-full p-4 bg-orange-50 text-brand-primary font-black rounded-2xl outline-none border border-orange-100" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">Stock</label>

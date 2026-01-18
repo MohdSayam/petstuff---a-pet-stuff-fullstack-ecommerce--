@@ -3,7 +3,7 @@ import toast from 'react-hot-toast'
 import API from '../../api/axios';
 import FullPageLoader from '../../loading/FullPageLoader';
 import { useNavigate } from 'react-router-dom'
-import { Plus, PackageSearch, Trash2, Edit3 } from 'lucide-react';
+import { Plus, PackageSearch, Trash2, Edit3, ExternalLink } from 'lucide-react';
 
 function AdminProducts() {
     const navigate = useNavigate();
@@ -14,7 +14,6 @@ function AdminProducts() {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                // Ensure this matches your backend route exactly
                 const res = await API.get('/store/products') 
                 setProducts(res.data.data)
             // eslint-disable-next-line no-unused-vars
@@ -27,7 +26,7 @@ function AdminProducts() {
         fetchProducts()
     }, [])
 
-    // 2. Optimized Delete Logic
+    // 2. Delete Logic
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure? This will delete the product permanently! 🐾")) return;
         try {
@@ -35,7 +34,6 @@ function AdminProducts() {
 
             if (res.status === 200) {
                 toast.success("Product removed")
-                // FIX: Update state locally so it disappears INSTANTLY
                 setProducts((prev) => prev.filter(p => p._id !== id))
             }
         // eslint-disable-next-line no-unused-vars
@@ -81,16 +79,27 @@ function AdminProducts() {
                     {products.map((product) => (
                         <div key={product._id} className='group bg-white rounded-[2.5rem] p-4 border border-slate-50 shadow-sm hover:shadow-xl hover:shadow-orange-900/5 transition-all duration-500'>
 
-                            {/* Image Area */}
-                            <div className="aspect-square rounded-4xl bg-slate-100 mb-4 overflow-hidden relative">
+                            {/* --- CLICKABLE IMAGE AREA --- */}
+                            <div 
+                                onClick={() => navigate(`/product/${product._id}`)}
+                                className="aspect-square rounded-4xl bg-slate-100 mb-4 overflow-hidden relative cursor-pointer"
+                                title="View on Live Shop"
+                            >
                                 <img 
-                                    src={product.images[0]?.url} // FIX: Added .url
+                                    src={product.images[0]?.url} 
                                     alt={product.productName} 
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                 />
                                 
+                                {/* Overlay Icon (Shows on Hover) */}
+                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <div className="bg-white/90 p-3 rounded-full text-slate-900 shadow-lg transform scale-0 group-hover:scale-100 transition-transform duration-300">
+                                        <ExternalLink size={20} />
+                                    </div>
+                                </div>
+
                                 {/* Stock Badge */}
-                                <div className="absolute top-3 right-3">
+                                <div className="absolute top-3 right-3 pointer-events-none">
                                     {product.stock === 0 ? (
                                         <span className="bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase">Out of Stock</span>
                                     ) : product.stock <= 5 ? (

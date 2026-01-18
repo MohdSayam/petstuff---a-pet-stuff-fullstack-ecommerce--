@@ -3,18 +3,16 @@ const Product = require("../models/ProductSchema");
 const Store = require("../models/StoreSchema");
 const mongoose = require("mongoose");
 
-// error handler
+// Helper
 const sendError = (res, next, statusCode, message) => {
   res.status(statusCode);
   return next(new Error(message));
 };
 
-
-// Create a new order
+// 1. CREATE ORDER
 const createOrder = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
-
   try {
     const { shippingInfo, orderItems, itemsPrice, shippingPrice, totalPrice } = req.body;
     const userId = req.user.id;
@@ -23,273 +21,232 @@ const createOrder = async (req, res, next) => {
       throw new Error("All fields are required");
     }
 
-    // Process each item: Atomic check-and-update
     for (const item of orderItems) {
       const updatedProduct = await Product.findOneAndUpdate(
-        { 
-          _id: item.product, 
-          stock: { $gte: item.quantity } // ONLY update if stock is enough
-        },
+        { _id: item.product, stock: { $gte: item.quantity } },
         { $inc: { stock: -item.quantity } },
         { session, new: true }
       );
-
-      if (!updatedProduct) {
-        // This triggers the catch block, which aborts the transaction automatically
-        throw new Error(`Insufficient stock or product not found: ${item.name}`);
-      }
+      if (!updatedProduct) throw new Error(`Insufficient stock for: ${item.name}`);
     }
 
-    // Create the order
-    const [order] = await Order.create([
-      {
-        shippingPrice,
-        shippingInfo,
-        orderItems,
-        itemsPrice,
-        totalPrice,
-        user: userId,
-      }
-    ], { session });
+    const [order] = await Order.create([{
+        shippingPrice, shippingInfo, orderItems, itemsPrice, totalPrice, user: userId,
+    }], { session });
 
     await session.commitTransaction();
-    
-    res.status(201).json({
-      success: true,
-      message: "Order Created Successfully",
-      order,
-    });
-
+    res.status(201).json({ success: true, message: "Order Created Successfully", order });
   } catch (error) {
-    // One place to handle all failures
     await session.abortTransaction();
-    console.error("Transaction Aborted:", error.message);
-    
-    return res.status(error.message.includes("stock") ? 400 : 500).json({
-      success: false,
-      message: error.message,
-    });
+    return res.status(error.message.includes("stock") ? 400 : 500).json({ success: false, message: error.message });
   } finally {
     session.endSession();
   }
 };
-  
 
-// get single order
+// 2. GET SINGLE ORDER
 const getSingleOrder = async (req, res, next) => {
-  const orderId = req.params.id;
   try {
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return sendError(
-        res,
-        next,
-        404,
-        `Order not found with the id ${orderId}`
-      );
+    const order = await Order.findById(req.params.id).populate('orderItems.product', 'images name');
+    if (!order) return sendError(res, next, 404, "Order not found");
+
+    if (req.user.role !== 'admin' && order.user.toString() !== req.user._id.toString()) {
+      return sendError(res, next, 403, "Not authorized");
     }
-    if (order.user.toString() !== req.user._id.toString()) {
-      return sendError(
-        res,
-        next,
-        403,
-        "You are not authorized to view this order"
-      );
-    }
-    res.status(200).json({
-      success: true,
-      order,
-    });
+    res.status(200).json({ success: true, order });
   } catch (error) {
-    console.error(error);
-    return sendError(res, next, 500, "Internal server error");
+    return sendError(res, next, 500, "Server Error");
   }
 };
 
-// get logged in user orders
+// 3. MY ORDERS (Pagination)
 const myOrders = async (req, res, next) => {
   const userId = req.user._id;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
   try {
+    const totalOrders = await Order.countDocuments({ user: userId });
     const orders = await Order.find({ user: userId })
-      .populate({
-        path : 'orderItems.product',
-        select: 'images'
-      }).sort({createdAt: -1})
-      
-    if (!orders || orders.length === 0) {
-      return sendError(res, next, 404, "You have no orders");
-    }
+      .populate({ path : 'orderItems.product', select: 'images name' })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json({
-      success: true,
-      orders,
+      success: true, orders, totalOrders,
+      totalPages: Math.ceil(totalOrders / limit), currentPage: page
     });
   } catch (error) {
-    console.error(error);
-    return sendError(res, next, 500, "Internal server error");
+    return sendError(res, next, 500, "Server Error");
   }
 };
 
-// get all orders -- admin
+// 4. ADMIN: GET ALL ORDERS
 const getAllOrders = async (req, res, next) => {
   try {
-    // pagination
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 100;
+    const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const status = req.query.status;
 
-    const totalOrdersCount = await Order.countDocuments({});
+    let query = {};
+    if (status && status !== 'All') query.orderStatus = status;
 
-    const orders = await Order.find()
+    const totalOrdersCount = await Order.countDocuments(query);
+    const orders = await Order.find(query)
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 })
-      .populate("user", "name email");
+      .populate("user", "name email")
+      .populate({ path: 'orderItems.product', select: 'images name' });
 
-    if (!orders || orders.length === 0) {
-      return sendError(res, next, 404, "No orders found");
+    res.status(200).json({
+      success: true, orders, totalOrdersCount,
+      totalPages: Math.ceil(totalOrdersCount / limit), currentPage: page
+    });
+  } catch (error) {
+    return sendError(res, next, 500, "Server Error");
+  }
+};
+
+// 5. GET STORE ORDERS (Secure, Paginated, Filtered)
+const getStoreOrders = async (req, res, next) => {
+  try {
+    const ownerId = req.user._id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const status = req.query.status;
+
+    // A. Find the Store belonging to this Admin
+    const store = await Store.findOne({ owner: ownerId });
+    if (!store) return sendError(res, next, 404, "You do not have a store created yet.");
+
+    // B. Find all Products belonging to this Store
+    // We only want orders that contain THESE products
+    const storeProducts = await Product.find({ store: store._id }).select('_id');
+    const storeProductIds = storeProducts.map(p => p._id);
+
+    // C. Build the Order Query
+    // Logic: Find orders where 'orderItems.product' is IN our list of store products
+    let query = {
+      'orderItems.product': { $in: storeProductIds }
+    };
+
+    if (status && status !== 'All') {
+      query.orderStatus = status;
     }
 
-    let totalAmount = 0;
-    orders.forEach((order) => {
-      totalAmount += order.totalPrice;
-    });
+    // D. Count & Fetch
+    const totalOrdersCount = await Order.countDocuments(query);
+    
+    const orders = await Order.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("user", "name email")
+      .populate({ path: 'orderItems.product', select: 'images name' });
+
+    // Calculate Revenue only for THIS store's orders
+    // (Note: In a real complex marketplace, you'd calculate revenue only for your specific line items, 
+    // but for now, we sum the order totals visible to you)
+    const allMatchingOrders = await Order.find(query).select('totalPrice');
+    const totalAmount = allMatchingOrders.reduce((acc, curr) => acc + curr.totalPrice, 0);
 
     res.status(200).json({
       success: true,
       totalOrdersCount,
-      page,
-      limit,
+      totalPages: Math.ceil(totalOrdersCount / limit),
+      currentPage: page,
       totalAmount,
       orders,
     });
+
   } catch (error) {
-    console.error(error);
-    return sendError(
-      res,
-      next,
-      500,
-      "Internal server error while fetching all orders"
-    );
+    console.error("Get Store Orders Error:", error);
+    return sendError(res, next, 500, "Server Error");
   }
 };
 
-// get all orders -- store
-const getStoreOrders = async (req, res, next) => {
-  const ownerId = new mongoose.Types.ObjectId(req.user._id);
-  try {
-    // find store associated with the owner
-    const store = await Store.findOne({ owner: ownerId });
-    if (!store) {
-      return sendError(res, next, 404, "Store not found");
-    }
-    const storeId = store._id;
-
-    const orders = await Order.aggregate([
-      { $unwind: "$orderItems" },
-      {
-        $lookup: {
-          from: "products",
-          localField: "orderItems.product",
-          foreignField: "_id",
-          as: "productDetails",
-        },
-      },
-      { $unwind: "$productDetails" },
-      { $match: { "productDetails.store": storeId } },
-      {
-        $group: {
-          _id: "$_id",
-          user: { $first: "$user" },
-          shippingInfo: { $first: "$shippingInfo" },
-          orderItems: { $push: "$orderItems" },
-          itemsPrice: { $first: "$itemsPrice" },
-          shippingPrice: { $first: "$shippingPrice" },
-          totalPrice: { $first: "$totalPrice" },
-          orderStatus: { $first: "$orderStatus" },
-          createdAt: { $first: "$createdAt" },
-        },
-      },
-      { $sort: { createdAt: -1 } },
-    ]);
-
-    if (!orders || orders.length === 0) {
-      return sendError(res, next, 404, "NO orders found for this store");
-    }
-
-    // calculate total amount
-    let totalAmount = orders.reduce((sum, order) => sum + order.totalPrice, 0);
-    res.status(200).json({
-      success: true,
-      totalOrders: orders.length,
-      totalAmount,
-      orders,
-    });
-  } catch (error) {
-    console.error("Store aggregation error", error);
-    return sendError(
-      res,
-      next,
-      500,
-      "Internal server error while fetching store order details."
-    );
-  }
-};
-
-// updateOrderStatus -- admin
+// 6. SECURE UPDATE STATUS
 const updateOrderStatus = async (req, res, next) => {
-  const orderId = req.params.id;
-  const { status } = req.body;
-
   try {
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return sendError(res, next, 404, `Order not found with id: ${orderId}`);
-    }
-    order.orderStatus = status;
-    if (status === "Delivered") {
-      order.deliveredAt = Date.now();
-    }
+    const orderId = req.params.id;
+    const ownerId = req.user._id;
 
-    await order.save();
+    // A. Find the Store
+    const store = await Store.findOne({ owner: ownerId });
+    if (!store) return sendError(res, next, 403, "Unauthorized Action");
 
-    res.status(200).json({
-      success: true,
-      message: `order ${orderId} status updated to ${status} successfully`,
-      order,
-    });
-  } catch (error) {
-    console.error("Error while updating order status", error);
-    return sendError(
-      res,
-      next,
-      500,
-      "Internal server error while updating order status"
+    // B. Find the Order
+    const order = await Order.findById(orderId).populate('orderItems.product');
+    if (!order) return sendError(res, next, 404, "Order not found");
+
+    // C. SECURITY CHECK: Does this order contain MY products?
+    // If the order has no products belonging to my store, I cannot touch it.
+    const hasMyProduct = order.orderItems.some(item => 
+      item.product && item.product.store.toString() === store._id.toString()
     );
+
+    if (!hasMyProduct) {
+      return sendError(res, next, 403, "You cannot manage orders that do not belong to your store.");
+    }
+
+    // D. Proceed with Update
+    order.orderStatus = req.body.status;
+    if (req.body.status === "Delivered") order.deliveredAt = Date.now();
+    
+    await order.save();
+    res.status(200).json({ success: true, message: `Status updated to ${req.body.status}` });
+
+  } catch (error) {
+    return sendError(res, next, 500, "Update failed");
   }
 };
 
-// delete order -- admin
+// 7. SECURE DELETE ORDER
 const deleteOrder = async (req, res, next) => {
-  const orderId = req.params.id;
-
   try {
-    const order = await Order.findByIdAndDelete(orderId);
-    if (!order) {
-      return sendError(res, next, 404, `Order not found with id: ${orderId}`);
-    }
-    res.status(200).json({
-      success: true,
-      message: "Order deleted successfully",
-    });
-  } catch (error) {
-    console.error("Error while deleting order", error);
-    return sendError(
-      res,
-      next,
-      500,
-      "Internal server error while deleting order"
+    const orderId = req.params.id;
+    const ownerId = req.user._id;
+
+    const store = await Store.findOne({ owner: ownerId });
+    const order = await Order.findById(orderId).populate('orderItems.product');
+
+    if (!order) return sendError(res, next, 404, "Order not found");
+
+    // SECURITY CHECK
+    const hasMyProduct = order.orderItems.some(item => 
+      item.product && item.product.store.toString() === store._id.toString()
     );
+
+    if (!hasMyProduct) {
+      return sendError(res, next, 403, "You cannot delete orders that do not belong to your store.");
+    }
+
+    await Order.findByIdAndDelete(orderId);
+    res.status(200).json({ success: true, message: "Order deleted" });
+
+  } catch (error) {
+    return sendError(res, next, 500, "Delete failed");
+  }
+};
+// 8. CANCEL ORDER (User)
+const cancelMyOrder = async (req, res, next) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, user: req.user._id });
+    if (!order) return sendError(res, next, 404, "Order not found");
+
+    if (['Shipped', 'Delivered'].includes(order.orderStatus)) {
+      return sendError(res, next, 400, "Cannot cancel shipped orders");
+    }
+    order.orderStatus = "Cancelled";
+    await order.save();
+    res.status(200).json({ success: true, message: "Order Cancelled", order });
+  } catch (error) {
+    return sendError(res, next, 500, "Cancel failed");
   }
 };
 
@@ -298,7 +255,8 @@ module.exports = {
   getSingleOrder,
   myOrders,
   getAllOrders,
-  getStoreOrders,
+  getStoreOrders, 
   updateOrderStatus,
   deleteOrder,
+  cancelMyOrder
 };

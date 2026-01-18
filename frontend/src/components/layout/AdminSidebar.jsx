@@ -10,7 +10,8 @@ import {
   User, 
   LogOut, 
   X,
-  Globe
+  Globe,
+  ShoppingCart
 } from 'lucide-react'; 
 
 // isOpen, logout and toggleSidebar is props from the AdminLayout
@@ -22,6 +23,7 @@ const AdminSidebar = ({isOpen, toggleSidebar, logout})=>{
         {name:'Dashboard', path:'/admin', icon: LayoutDashboard},
         {name:'My Store', path:'/admin/store', icon: Store},
         {name:'Inventory', path:'/admin/products', icon: PackageSearch},
+        {name:'Orders', path:'/admin/orders', icon: ShoppingCart},
         {name:'Analytics', path:'/admin/analytics', icon: BarChart3},
         {name:'Profile', path:'/admin/profile', icon: User},
     ];

@@ -21,6 +21,7 @@ import OrdersPage from "./pages/customer/OrdersPage.jsx";
 import OrdersDetailsPage from "./pages/customer/OrdersDetailsPage.jsx";
 import CustomerDashboard from "./pages/customer/CustomerDashboard.jsx";
 import ComingSoonPage from "./pages/ComingSoon.jsx";
+import StoreDetailsPage from "./pages/customer/StoreDetailsPage.jsx";
 
 // Admin Pages... (Keep your imports)
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
@@ -30,6 +31,7 @@ import AdminProducts from "./pages/admin/AdminProducts.jsx";
 import ProductForm from "./pages/admin/ProductForm.jsx";
 import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
 import AdminProfile from "./pages/admin/AdminProfile.jsx";
+import AdminOrders from "./pages/admin/AdminOrders.jsx";
 
 function App() {
   return (
@@ -53,6 +55,7 @@ function App() {
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/coming-soon" element={<ComingSoonPage />} />
+          <Route path="/store/:id" element={<StoreDetailsPage />} />
 
           {/* Protected Customer Routes */}
           <Route path="/customer" element={<UserRoute />}>
@@ -77,6 +80,7 @@ function App() {
            <Route path="products" element={<AdminProducts />} />
            <Route path="products/add" element={<ProductForm mode="add" />} />
            <Route path="products/edit/:id" element={<ProductForm mode="edit" />} />
+           <Route path="orders" element={<AdminOrders />} />
            <Route path="analytics" element={<AdminAnalytics />} />
            <Route path="profile" element={<AdminProfile />} />
         </Route>

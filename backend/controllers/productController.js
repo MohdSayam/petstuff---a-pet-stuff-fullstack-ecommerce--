@@ -89,7 +89,7 @@ const getProductDetailsToUser = async (req, res, next) => {
   try {
     const productId = req.params.id;
     const product = await Product.findById(productId)
-      .populate({ path: "store", select: "name owner address" })
+      .populate({ path: "store", select: "name owner address createdAt" })
       .select("-__v -createdAt");
     if (!product) {
       return sendError(res, next, 404, `Product with ${productId} not found`);

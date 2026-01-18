@@ -83,14 +83,24 @@ const getStoreDetailsToCustomers = async (req, res, next) => {
   const storeId = req.params.id;
 
   try {
+    // fetch store details
     const store = await Store.findById(storeId).select(
-      "name description location createdAt"
+      "name description location createdAt email"
     );
     if (!store) {
       return sendError(res, next, 404, "Store not found");
     }
 
-    res.status(200).json({ store });
+    // fetch all products related to that store
+    const products = await Product.find({store : storeId})
+      .sort({createdAt: -1})
+
+
+    res.status(200).json({ 
+      success: true,
+      store,
+      products
+     });
   } catch (error) {
     console.error(error);
     // Added specific check for invalid ID format (CastError)

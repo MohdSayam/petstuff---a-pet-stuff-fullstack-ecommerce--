@@ -3,19 +3,21 @@ import { useParams, Link } from 'react-router-dom';
 import API from '../../api/axios';
 import { CartContext } from '../../context/CartContext';
 import FullPageLoader from '../../loading/FullPageLoader';
-import { ShoppingBag, Truck, ShieldCheck, ArrowLeft, Star, Minus, Plus } from 'lucide-react';
+import { 
+    ShoppingBag, Truck, ShieldCheck, ArrowLeft, Star, Minus, Plus, 
+    Store, ChevronRight 
+} from 'lucide-react';
 
 const ProductDetails = () => {
     const { id } = useParams();
     const { addToCart } = useContext(CartContext);
     
     const [product, setProduct] = useState(null);
-    const [similarProducts, setSimilarProducts] = useState([]); // State for related items
+    const [similarProducts, setSimilarProducts] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [mainImage, setMainImage] = useState('');
     const [quantity, setQuantity] = useState(1);
 
-    // 1. Fetch Main Product
     useEffect(() => {
         const fetchProduct = async () => {
             setLoading(true);
@@ -23,8 +25,6 @@ const ProductDetails = () => {
                 const res = await API.get(`/products/${id}`);
                 setProduct(res.data);
                 setMainImage(res.data.images[0]?.url);
-                
-                // 2. Once we have the product, fetch similar items
                 fetchSimilarProducts(res.data);
             } catch (error) {
                 console.error("Error fetching product", error);
@@ -36,17 +36,15 @@ const ProductDetails = () => {
         window.scrollTo(0, 0); 
     }, [id]);
 
-    // 3. Logic to fetch related items based on Category & Type
     const fetchSimilarProducts = async (currentProduct) => {
         try {
             const res = await API.get('/products', {
                 params: {
                     animalType: currentProduct.animalType,
                     productType: currentProduct.productType,
-                    limit: 5 // Fetch 5 just in case we need to filter one out
+                    limit: 5 
                 }
             });
-            // Filter out the CURRENT product from the list
             const related = res.data.data.filter(p => p._id !== currentProduct._id).slice(0, 4);
             setSimilarProducts(related);
         } catch (error) {
@@ -116,7 +114,7 @@ const ProductDetails = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-end gap-4 mb-8">
+                    <div className="flex items-end gap-4 mb-6">
                         <span className="text-5xl font-black text-slate-900 tracking-tighter">${product.salePrice}</span>
                         {product.discountPercentage > 0 && (
                             <div className="flex flex-col mb-2">
@@ -126,9 +124,36 @@ const ProductDetails = () => {
                         )}
                     </div>
 
+                    {/* --- NEW: STORE CARD --- */}
+                    {product.store && (
+                        <div className="bg-slate-50 rounded-2xl p-4 mb-8 border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-slate-200 transition-all duration-300">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-brand-primary border border-slate-100">
+                                    <Store size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Sold By</p>
+                                    <h3 className="font-bold text-slate-900 leading-tight">{product.store.name}</h3>
+                                    {product.store.createdAt && (
+                                        <p className="text-[10px] font-bold text-slate-400">
+                                            Active since {new Date(product.store.createdAt).getFullYear()}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                            <Link 
+                                to={`/store/${product.store._id}`} 
+                                className="pl-4 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-wide text-slate-700 hover:text-brand-primary hover:border-brand-primary transition-all flex items-center gap-1 shadow-sm"
+                            >
+                                Visit <ChevronRight size={14} strokeWidth={3}/>
+                            </Link>
+                        </div>
+                    )}
+
                     <p className="text-slate-600 font-medium leading-relaxed mb-8 text-lg">{product.description}</p>
                     <div className="h-px bg-slate-100 mb-8" />
 
+                    {/* Add to Cart Section */}
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <span className="text-sm font-bold text-slate-900 uppercase tracking-widest">Quantity</span>

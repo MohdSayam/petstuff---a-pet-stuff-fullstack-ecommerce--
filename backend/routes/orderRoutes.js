@@ -10,6 +10,7 @@ const {
   getStoreOrders,
   myOrders,
   updateOrderStatus,
+  cancelMyOrder
 } = require("../controllers/orderController");
 
 // customer routes protected by "protect"
@@ -21,6 +22,7 @@ router.get("/:id", protect, getSingleOrder); // single order details here
 router.get("/admin/all", protect, admin, getAllOrders);
 router.get("/admin/store", protect, admin, getStoreOrders);
 router.put("/admin/:id/status", protect, admin, updateOrderStatus);
+router.put("/user/:id/status", protect, cancelMyOrder);
 router.delete("/admin/:id", protect, admin, deleteOrder);
 
 module.exports = router;
