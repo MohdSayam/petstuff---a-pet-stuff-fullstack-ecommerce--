@@ -1,17 +1,16 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+// FIXED IMPORTS (Changed from ../../ to ../)
 import { AuthContext } from '../context/AuthContext'
 import API from '../api/axios'
+import FullPageLoader from '../loading/FullPageLoader' 
 import toast from 'react-hot-toast'
-import FullPageLoader from '../loading/FullPageLoader'
 
 function Login() {
     const navigate = useNavigate()
     const { login, user } = useContext(AuthContext); 
     
-    // State 1: Page Loading (Waiting for Auth Check)
     const [pageLoading, setPageLoading] = useState(true);
-    // State 2: Submitting Form
     const [submitting, setSubmitting] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -19,14 +18,14 @@ function Login() {
         password: ""
     })
 
-    // --- RESTRICT ACCESS ---
     useEffect(() => {
         if (user) {
-            // Already logged in? Go to dashboard.
-            const target = user.role === 'admin' ? '/admin' : '/customer/profile';
-            navigate(target, { replace: true });
+            if (user.role === 'admin') {
+                navigate('/admin', { replace: true });
+            } else {
+                navigate('/shop', { replace: true });
+            }
         } else {
-            // Not logged in? Show form.
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setPageLoading(false);
         }
@@ -51,7 +50,7 @@ function Login() {
             if (user.role === 'admin') {
                 navigate("/admin");
             } else {
-                navigate("/customer");
+                navigate("/shop");
             }
         } catch (error) {
             toast.error(error.response?.data?.message || "Invalid email or password")
@@ -108,4 +107,4 @@ function Login() {
     )
 }
 
-export default Login
+export default Login;

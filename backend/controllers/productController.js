@@ -2,6 +2,7 @@ const Product = require("../models/ProductSchema");
 const Store = require("../models/StoreSchema");
 const Order = require("../models/OrderSchema");
 const mongoose = require("mongoose"); // Added for aggregation and ObjectId type casting
+const {uploadToCloudinary, deleteFromCloudinary} = require("../utils/cloudinary")
 
 const sendError = (res, next, statusCode, message) => {
   res.status(statusCode);
@@ -9,7 +10,7 @@ const sendError = (res, next, statusCode, message) => {
 };
 
 // check if user role is admin than he can create product in his own store
-const createProduct = async (req, res, next) => {
+const createProduct = async (req,res,next) => {
   const {
     productName,
     description,
@@ -20,44 +21,32 @@ const createProduct = async (req, res, next) => {
     animalType,
     productType,
     store: storeId,
-    images,
-  } = req.body;
+  } = req.body
+
   try {
-    // check if store belongs to the user(admin)
     const store = await Store.findById(storeId);
-    if (!store) {
-      return sendError(res, next, 404, "Store not found");
-    }
-
-    //  CRITICAL SECURITY CHECK: Verify store ownership
-    // 'store.owner' holds the ObjectId of the admin user
+    if (!store) return sendError(res,next, 404, "Store not found")
+    
     if (store.owner.toString() !== req.user.id.toString()) {
-      return sendError(
-        res,
-        next,
-        403,
-        "Access forbidden:you do not own this store"
-      );
+      return sendError(res,next,403, "Access forbidden: yoy don't own this store!")
     }
 
-    if (!images || images.length < 3) {
-      return sendError(
-        res,
-        next,
-        400,
-        "At least 3 images are required for a product"
-      );
+    // now files are in req.files not in req.body which is coming from multer, if no files it will be empty
+    if (!req.files || req.files.length < 3) {
+      return sendError(res,next, 400, "At least 3 images are required")
     }
 
-    if (images.length > 5) {
-      return sendError(
-        res,
-        next,
-        400,
-        "A maximum of 5 images are allowed per product"
-      );
+    if (req.files.length > 5) {
+      return sendError(res,next, 400, "Maximum 5 images allowed!")
     }
 
+    // upload to cloudinary: map the files and return a promise for eaach upload
+    const uploadPromises = req.files.map(file=> uploadToCloudinary(file.buffer))
+
+    // we will wait for all upload to finish. images will be an array of objects {url:.., publicId:..,}
+    const images = await Promise.all(uploadPromises)
+
+    //create product in database
     const product = await Product.create({
       productName,
       description,
@@ -68,21 +57,16 @@ const createProduct = async (req, res, next) => {
       animalType,
       productType,
       store: storeId,
-      images,
+      images
     });
 
-    // response to the frontend
-    res.status(201).json(product);
+    res.status(201).json(product)
+    
   } catch (error) {
-    console.error(error);
-    return sendError(
-      res,
-      next,
-      400,
-      error.message || "Could not create product due to validation error"
-    );
+    console.error(error)
+    return sendError(res, next, 400, error.message || "Product creation failed!")
   }
-};
+}
 
 // read the product means get the product info for the user to see the product details
 const getProductDetailsToUser = async (req, res, next) => {
@@ -112,42 +96,72 @@ const getAdminProductDetails = async (req, res) => {
 
 // update product details (Uses req.product from middleware)
 const updateProductDetails = async (req, res, next) => {
-  // If we reach here, req.product is guaranteed to exist and be owned by the user.
+  // req.product is guaranteed by the 'isStoreOwner' middleware
   const product = req.product;
 
   try {
-    const updatedData = req.body;
+    // A. Update Text Fields
+    // We explicitly exclude 'images' from req.body to prevent overwriting the array with text data
+    const { images, ...textData } = req.body; 
+    Object.assign(product, textData);
 
-    // Efficiently merge new data into the Mongoose document
-    Object.assign(product, updatedData);
+    // B. Handle NEW Images (if any were uploaded)
+    if (req.files && req.files.length > 0) {
+      
+      // FIX IS HERE: Use '?.' to safely access length, default to 0 if undefined
+      const currentImageCount = product.images?.length || 0;
+      const newImageCount = req.files.length;
+      
+      if (currentImageCount + newImageCount > 5) {
+        return sendError(res, next, 400, `You have ${currentImageCount} images. You can only add ${5 - currentImageCount} more.`);
+      }
+
+      // 1. Upload New Images
+      const uploadPromises = req.files.map(file => uploadToCloudinary(file.buffer));
+      const newImages = await Promise.all(uploadPromises);
+
+      // 2. Add to existing images array (Initialize if undefined)
+      if (!product.images) product.images = [];
+      product.images.push(...newImages);
+    }
+
+    // C. Save
     await product.save();
-
     res.status(200).json(product);
+
   } catch (error) {
     console.error(error);
-    return sendError(res, next, 400, "Couldn't update the product details");
+    return sendError(res, next, 400, "Update failed");
   }
 };
 
 // delete product (Uses req.product from middleware)
-const deleteProduct = async (req, res, next) => {
-  // If we reach here, req.product is guaranteed to exist and be owned by the user.
-  const productId = req.product._id;
-
+const deleteProduct = async (req,res,next) => {
+  const product = req.product;
+  
   try {
-    // Use the ID to delete the document
-    const deletedProduct = await Product.findByIdAndDelete(productId);
+    if (product.images && product.images.length > 0) {
+      const deletePromises = product.images.map(image => {
+        if (image.publicId) {
+          return deleteFromCloudinary(image.publicId)
+        }
+      });
 
-    // Confirmation response
+      await Promise.allSettled(deletePromises)
+    }
+
+    // delete from database
+    await Product.findByIdAndDelete(product._id)
+
     res.status(200).json({
-      message: "Product deleted successfully",
-      product: deletedProduct,
-    });
+      message: "Product delete from database and cloudinary.",
+      deleteId: product._id 
+    })
   } catch (error) {
-    console.error(error);
-    return sendError(res, next, 400, "Couldn't delete the product");
+    console.error(error)
+    return sendError(res, next, 500, "Server error during deletion")
   }
-};
+}
 
 // get all products
 const getAllProducts = async (req, res, next) => {
