@@ -9,7 +9,7 @@ const AdminOrders = () => {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    
+
     // Pagination & Filter State
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -21,13 +21,14 @@ const AdminOrders = () => {
         try {
             // Calls the admin endpoint with pagination and status query
             const res = await API.get(`/orders/admin/store?page=${page}&limit=10&status=${filterStatus}`);
-            
+
             setOrders(res.data.orders || []);
             setTotalPages(res.data.totalPages || 1);
         } catch (error) {
             console.error(error);
+            // Only show toast for actual errors, not for "no store" or "no orders"
             if (error.response?.status === 404) {
-                toast.error("Please create a store first!")
+                // User has no store - don't show toast, they'll see the empty state
             } else {
                 toast.error("Failed to load orders")
             }
@@ -47,7 +48,7 @@ const AdminOrders = () => {
             setOrders(prev => prev.map(o => o._id === orderId ? { ...o, orderStatus: newStatus } : o));
             await API.put(`/orders/admin/${orderId}/status`, { status: newStatus });
             toast.success(`Order marked as ${newStatus}`);
-        // eslint-disable-next-line no-unused-vars
+            // eslint-disable-next-line no-unused-vars
         } catch (error) {
             toast.error("Update failed");
             fetchOrders(); // Revert on failure
@@ -56,12 +57,12 @@ const AdminOrders = () => {
 
     // Handle Delete
     const handleDeleteOrder = async (id) => {
-        if(!window.confirm("Delete this order history?")) return;
+        if (!window.confirm("Delete this order history?")) return;
         try {
             await API.delete(`/orders/admin/${id}`);
             setOrders(orders.filter(o => o._id !== id));
             toast.success("Order deleted");
-        // eslint-disable-next-line no-unused-vars
+            // eslint-disable-next-line no-unused-vars
         } catch (error) {
             toast.error("Delete failed");
         }
@@ -69,7 +70,7 @@ const AdminOrders = () => {
 
     // Status Color Helper
     const getStatusColor = (status) => {
-         switch(status) {
+        switch (status) {
             case 'Pending': return 'bg-yellow-50 text-yellow-600 border-yellow-100';
             case 'Processing': return 'bg-blue-50 text-blue-600 border-blue-100';
             case 'Shipped': return 'bg-purple-50 text-purple-600 border-purple-100';
@@ -89,7 +90,7 @@ const AdminOrders = () => {
                     <h1 className="text-3xl font-black text-slate-800 tracking-tight">Orders</h1>
                     <p className="text-slate-500 font-medium">Page {page} of {totalPages}</p>
                 </div>
-                
+
                 {/* Filters */}
                 <div className="flex bg-white p-1 rounded-xl border border-slate-100 shadow-sm overflow-x-auto">
                     {['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map(status => (
@@ -99,11 +100,10 @@ const AdminOrders = () => {
                                 setFilterStatus(status);
                                 setPage(1); // Reset to page 1 on filter change
                             }}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all ${
-                                filterStatus === status 
-                                ? 'bg-slate-900 text-white shadow-md' 
+                            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all ${filterStatus === status
+                                ? 'bg-slate-900 text-white shadow-md'
                                 : 'text-slate-500 hover:bg-slate-50'
-                            }`}
+                                }`}
                         >
                             {status}
                         </button>
@@ -135,26 +135,26 @@ const AdminOrders = () => {
                                         <td className="p-6">
                                             <div className="flex items-center gap-4">
                                                 {/* CLICKABLE IMAGE -> Navigates to Product Page */}
-                                                <div 
+                                                <div
                                                     onClick={() => productId && navigate(`/product/${productId}`)}
                                                     title="View Product Details"
                                                     className="w-12 h-12 bg-slate-100 rounded-xl overflow-hidden relative cursor-pointer hover:ring-2 hover:ring-brand-primary transition-all"
                                                 >
                                                     {productImg ? (
-                                                        <img src={productImg} alt="" className="w-full h-full object-cover"/>
+                                                        <img src={productImg} alt="" className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <Package className="m-auto text-slate-300" size={20}/>
+                                                        <Package className="m-auto text-slate-300" size={20} />
                                                     )}
                                                     {/* Hover Overlay Icon */}
                                                     {productId && (
                                                         <div className="absolute inset-0 bg-black/10 hidden group-hover:flex items-center justify-center">
-                                                            <ExternalLink size={12} className="text-white drop-shadow-md"/>
+                                                            <ExternalLink size={12} className="text-white drop-shadow-md" />
                                                         </div>
                                                     )}
                                                 </div>
-                                                
+
                                                 <div>
-                                                    <p 
+                                                    <p
                                                         onClick={() => productId && navigate(`/product/${productId}`)}
                                                         className="font-bold text-slate-800 text-sm cursor-pointer hover:text-brand-primary transition-colors"
                                                     >
@@ -168,7 +168,7 @@ const AdminOrders = () => {
                                             <p className="font-bold text-slate-800 text-sm">{order.user?.name || "Guest"}</p>
                                             <p className="text-xs text-slate-400 font-mono">#{order._id.slice(-6)}</p>
                                         </td>
-                                        <td className="p-6 font-black text-slate-800">${order.totalPrice.toFixed(2)}</td>
+                                        <td className="p-6 font-black text-slate-800">₹{order.totalPrice.toFixed(0)}</td>
                                         <td className="p-6">
                                             <select
                                                 value={order.orderStatus}
@@ -185,7 +185,7 @@ const AdminOrders = () => {
                                         <td className="p-6 text-right">
                                             {(order.orderStatus === 'Delivered' || order.orderStatus === 'Cancelled') && (
                                                 <button onClick={() => handleDeleteOrder(order._id)} className="p-2 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors">
-                                                    <Trash2 size={16}/>
+                                                    <Trash2 size={16} />
                                                 </button>
                                             )}
                                         </td>
@@ -200,20 +200,20 @@ const AdminOrders = () => {
             {/* Pagination Controls */}
             {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-4 pt-4">
-                    <button 
+                    <button
                         disabled={page === 1}
                         onClick={() => setPage(p => p - 1)}
                         className="p-3 bg-white border border-slate-200 rounded-xl disabled:opacity-50 hover:bg-slate-50 transition-colors"
                     >
-                        <ChevronLeft size={20}/>
+                        <ChevronLeft size={20} />
                     </button>
                     <span className="font-bold text-slate-600">Page {page} of {totalPages}</span>
-                    <button 
+                    <button
                         disabled={page === totalPages}
                         onClick={() => setPage(p => p + 1)}
                         className="p-3 bg-white border border-slate-200 rounded-xl disabled:opacity-50 hover:bg-slate-50 transition-colors"
                     >
-                        <ChevronRight size={20}/>
+                        <ChevronRight size={20} />
                     </button>
                 </div>
             )}

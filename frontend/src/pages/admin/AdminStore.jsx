@@ -35,7 +35,10 @@ function AdminStore() {
           location: res.data.store.location
         });
       } catch (error) {
-        toast.error("Failed to load store details");
+        // Don't show error if user simply doesn't have a store yet (404)
+        if (error.response?.status !== 404) {
+          toast.error("Failed to load store details");
+        }
         console.log(error.message)
       } finally {
         setLoading(false);
@@ -58,7 +61,7 @@ function AdminStore() {
 
   const handleDeleteStore = async () => {
     const firstCheck = window.confirm("Are you sure this will remove your all products, analytics etc. related to this store!")
-    if (!firstCheck) return 
+    if (!firstCheck) return
 
     const secondCheck = window.confirm("Final Warning: This action can't be reversed!")
     if (!secondCheck) return
@@ -78,6 +81,27 @@ function AdminStore() {
 
   if (loading) return <FullPageLoader />;
 
+  // Empty state when user has no store yet
+  if (!store) {
+    return (
+      <div className='flex flex-col items-center justify-center py-20 animate-in fade-in duration-500'>
+        <div className='bg-orange-50 p-8 rounded-full mb-6'>
+          <MapPin size={48} className='text-brand-primary' />
+        </div>
+        <h2 className='text-2xl font-black text-slate-800 mb-2'>No Store Yet</h2>
+        <p className='text-slate-500 text-center max-w-md mb-8'>
+          You haven't created a store. Set up your store to start adding products and managing orders.
+        </p>
+        <button
+          onClick={() => navigate('/admin/store/create')}
+          className='bg-brand-primary text-white px-8 py-4 rounded-2xl font-bold shadow-xl shadow-orange-200 hover:scale-105 active:scale-95 transition-all'
+        >
+          Create Your Store
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className='space-y-8 max-w-5xl animate-in fade-in duration-500'>
       {/* Header with Edit Toggle */}
@@ -88,9 +112,8 @@ function AdminStore() {
         </div>
         <button
           onClick={() => setIsEditing(!isEditing)}
-          className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold transition-all ${
-            isEditing ? 'bg-slate-100 text-slate-600' : 'bg-brand-primary text-white shadow-lg shadow-orange-200'
-          }`}
+          className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold transition-all ${isEditing ? 'bg-slate-100 text-slate-600' : 'bg-brand-primary text-white shadow-lg shadow-orange-200'
+            }`}
         >
           {isEditing ? <><X size={18} /> Cancel</> : <><Edit3 size={18} /> Edit Store</>}
         </button>
@@ -193,9 +216,9 @@ function AdminStore() {
               Deleting your store will permanently remove all your products and analytics. This action cannot be undone.
             </p>
           </div>
-          <button 
-          onClick={handleDeleteStore}
-          className="bg-white text-red-600 border border-red-200 px-8 py-3 rounded-2xl font-bold hover:bg-red-600 hover:text-white transition-all">
+          <button
+            onClick={handleDeleteStore}
+            className="bg-white text-red-600 border border-red-200 px-8 py-3 rounded-2xl font-bold hover:bg-red-600 hover:text-white transition-all">
             Delete Store
           </button>
         </div>

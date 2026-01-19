@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const connectDB = async () => {
   try {
+    // If already connected, use existing connection
+    if (mongoose.connection.readyState === 1) {
+      return;
+    }
+
     await mongoose.connect(process.env.MONGO_URI);
     console.log("MongoDB connected Successfully");
   } catch (error) {

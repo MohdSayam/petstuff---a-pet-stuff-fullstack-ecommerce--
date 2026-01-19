@@ -11,12 +11,12 @@ function OrdersDetailsPage() {
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // 1. Fetch Logic (Wrapped in useCallback for clean ESLint)
+    // Fetch order details
     const fetchOrder = useCallback(async () => {
         try {
             const response = await API.get(`/orders/${id}`);
             setOrder(response.data.order);
-        // eslint-disable-next-line no-unused-vars
+            // eslint-disable-next-line no-unused-vars
         } catch (error) {
             toast.error("Error fetching order");
             navigate('/customer/orders');
@@ -29,7 +29,7 @@ function OrdersDetailsPage() {
         fetchOrder();
     }, [fetchOrder]);
 
-    // 2. Cancellation Logic
+    // Cancel order
     const handleCancelOrder = async () => {
         if (!window.confirm("Are you sure you want to cancel this order? This cannot be undone.")) return;
 
@@ -45,7 +45,7 @@ function OrdersDetailsPage() {
     if (loading) return <FullPageLoader />;
     if (!order) return <div className="p-10 text-center font-bold">Order not found</div>;
 
-    // --- TRACKER LOGIC ---
+    // Tracker status logic
     const isCancelled = order.orderStatus === 'Cancelled';
 
     const steps = [
@@ -60,9 +60,9 @@ function OrdersDetailsPage() {
     if (!isCancelled) {
         // Find the index of the current status
         activeStep = steps.findIndex(step => step.status === order.orderStatus);
-        
-        // Edge case: If status isn't in steps (e.g. data error), default to -1
-        if (activeStep === -1 && order.orderStatus !== 'Pending') activeStep = 0; 
+
+        // Edge case: if status doesn't match steps
+        if (activeStep === -1 && order.orderStatus !== 'Pending') activeStep = 0;
     }
 
     // Can we cancel? (Only if NOT cancelled, and status is Pending or Processing)
@@ -82,9 +82,8 @@ function OrdersDetailsPage() {
                             Order Details
                         </h1>
                         {/* Status Badge */}
-                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ${
-                            isCancelled ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'
-                        }`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ${isCancelled ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'
+                            }`}>
                             #{order._id.slice(-6)}
                         </span>
                     </div>
@@ -92,12 +91,12 @@ function OrdersDetailsPage() {
                 </div>
 
                 <div className="text-right">
-                    <p className="text-2xl font-black text-slate-900">${order.totalPrice.toFixed(2)}</p>
+                    <p className="text-2xl font-black text-slate-900">₹{order.totalPrice.toFixed(0)}</p>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{order.orderItems.length} Items</p>
-                    
+
                     {/* CANCEL BUTTON */}
                     {canCancel && (
-                        <button 
+                        <button
                             onClick={handleCancelOrder}
                             className="mt-2 text-xs font-bold text-red-500 hover:text-red-700 underline flex items-center gap-1 justify-end w-full"
                         >
@@ -107,11 +106,10 @@ function OrdersDetailsPage() {
                 </div>
             </div>
 
-            {/* --- 5-STEP TRACKER UI --- */}
-            <div className={`border rounded-4xl p-8 mb-8 shadow-sm relative overflow-hidden ${
-                isCancelled ? 'bg-red-50 border-red-100' : 'bg-white border-slate-100'
-            }`}>
-                
+            {/* Tracker */}
+            <div className={`border rounded-4xl p-8 mb-8 shadow-sm relative overflow-hidden ${isCancelled ? 'bg-red-50 border-red-100' : 'bg-white border-slate-100'
+                }`}>
+
                 {isCancelled && (
                     <div className="absolute top-0 left-0 w-full bg-red-100 text-red-600 text-xs font-bold text-center py-1 uppercase tracking-widest">
                         Order Cancelled
@@ -119,39 +117,36 @@ function OrdersDetailsPage() {
                 )}
 
                 <div className="relative flex justify-between mt-4">
-                    
+
                     {/* Gray Line Background */}
                     <div className="absolute top-5 left-0 w-full h-1 bg-slate-200 z-0"></div>
-                    
+
                     {/* Active Line (Red if cancelled, Orange if active) */}
-                    <div 
-                        className={`absolute top-5 left-0 h-1 transition-all duration-1000 z-0 ${
-                            isCancelled ? 'bg-red-500 w-full' : 'bg-brand-primary'
-                        }`} 
+                    <div
+                        className={`absolute top-5 left-0 h-1 transition-all duration-1000 z-0 ${isCancelled ? 'bg-red-500 w-full' : 'bg-brand-primary'
+                            }`}
                         style={!isCancelled ? { width: `${(activeStep / (steps.length - 1)) * 100}%` } : {}}
                     ></div>
 
                     {/* Steps Rendering */}
                     {steps.map((step, index) => {
                         const isCompleted = !isCancelled && index <= activeStep;
-                        
+
                         return (
                             <div key={step.label} className="relative z-10 flex flex-col items-center gap-3">
                                 {/* Circle Icon */}
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 border-4 ${
-                                    isCancelled 
-                                        ? 'bg-red-500 border-red-200 text-white' 
-                                        : isCompleted 
-                                            ? 'bg-brand-primary border-orange-100 text-white scale-110 shadow-lg' 
-                                            : 'bg-slate-100 border-white text-slate-300'
-                                }`}>
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 border-4 ${isCancelled
+                                    ? 'bg-red-500 border-red-200 text-white'
+                                    : isCompleted
+                                        ? 'bg-brand-primary border-orange-100 text-white scale-110 shadow-lg'
+                                        : 'bg-slate-100 border-white text-slate-300'
+                                    }`}>
                                     {isCancelled ? <XCircle size={16} /> : (isCompleted ? <Check size={18} strokeWidth={4} /> : <step.icon size={16} />)}
                                 </div>
-                                
+
                                 {/* Label */}
-                                <span className={`text-[10px] font-black uppercase tracking-widest ${
-                                    isCancelled ? 'text-red-400' : (isCompleted ? 'text-brand-primary' : 'text-slate-300')
-                                }`}>
+                                <span className={`text-[10px] font-black uppercase tracking-widest ${isCancelled ? 'text-red-400' : (isCompleted ? 'text-brand-primary' : 'text-slate-300')
+                                    }`}>
                                     {step.label}
                                 </span>
                             </div>
@@ -162,8 +157,8 @@ function OrdersDetailsPage() {
 
             {/* Order Items & Details */}
             <div className="grid md:grid-cols-2 gap-8">
-                
-                {/* ITEMS LIST (With Clickable Images) */}
+
+                {/* Items List */}
                 <div className="bg-slate-50 rounded-4xl p-6">
                     <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6">Items Ordered</h3>
                     <div className="space-y-4">
@@ -171,18 +166,18 @@ function OrdersDetailsPage() {
                             <div key={i} className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm">
                                 <div className="flex items-center gap-4">
                                     {/* CLICKABLE IMAGE */}
-                                    <div 
+                                    <div
                                         onClick={() => navigate(`/product/${item.product._id}`)}
                                         className="w-12 h-12 bg-slate-100 rounded-xl overflow-hidden cursor-pointer hover:ring-2 hover:ring-brand-primary transition-all"
                                     >
-                                        <img 
-                                            src={item.product?.images?.[0]?.url || "https://placehold.co/100"} 
-                                            className="w-full h-full object-cover" 
+                                        <img
+                                            src={item.product?.images?.[0]?.url || "https://placehold.co/100"}
+                                            className="w-full h-full object-cover"
                                             alt={item.name}
                                         />
                                     </div>
                                     <div>
-                                        <p 
+                                        <p
                                             onClick={() => navigate(`/product/${item.product._id}`)}
                                             className="font-bold text-slate-700 text-sm cursor-pointer hover:text-brand-primary transition-colors"
                                         >

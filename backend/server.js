@@ -2,11 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
+const passport = require("./config/passport"); // Google OAuth config
 
-// error middlewares import
+// Error handlers
 const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
 
-// first we have to make sure that we use dotenv.config() without this we can't use .env files
 dotenv.config();
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -14,6 +14,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Passport for OAuth
+app.use(passport.initialize());
 
 // auth routes
 app.use("/api/auth", require("./routes/authRoutes"));
@@ -27,20 +30,24 @@ app.use("/api/store", require("./routes/storeRoutes"));
 // order routes
 app.use("/api/orders", require("./routes/orderRoutes"));
 
-// Global Error Handlers
-// A. Not Found Handler (404)
-// If a request reaches this line, it means it didn't match any route defined above.
+// Error handlers
 app.use(notFound);
 
-// B. General Error Handler (400, 500, etc.)
-// This catches any error explicitly passed via next(error) from controllers or other middleware.
 app.use(errorHandler);
 
-// Server setup and port
-const startServer = async () => {
-  await connectDB();
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-};
-startServer();
+// Start server if run directly (Local Development)
+if (require.main === module) {
+  const startServer = async () => {
+    await connectDB();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  };
+  startServer();
+} else {
+  // For Vercel / Serverless to work we must connect to DB
+  // Mongoose handles buffering so we can call this
+  connectDB();
+}
+
+module.exports = app;

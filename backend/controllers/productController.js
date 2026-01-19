@@ -2,15 +2,15 @@ const Product = require("../models/ProductSchema");
 const Store = require("../models/StoreSchema");
 const Order = require("../models/OrderSchema");
 const mongoose = require("mongoose"); // Added for aggregation and ObjectId type casting
-const {uploadToCloudinary, deleteFromCloudinary} = require("../utils/cloudinary")
+const { uploadToCloudinary, deleteFromCloudinary } = require("../utils/cloudinary")
 
 const sendError = (res, next, statusCode, message) => {
   res.status(statusCode);
   return next(new Error(message));
 };
 
-// check if user role is admin than he can create product in his own store
-const createProduct = async (req,res,next) => {
+// Create product (admin only)
+const createProduct = async (req, res, next) => {
   const {
     productName,
     description,
@@ -25,28 +25,27 @@ const createProduct = async (req,res,next) => {
 
   try {
     const store = await Store.findById(storeId);
-    if (!store) return sendError(res,next, 404, "Store not found")
-    
+    if (!store) return sendError(res, next, 404, "Store not found")
+
     if (store.owner.toString() !== req.user.id.toString()) {
-      return sendError(res,next,403, "Access forbidden: yoy don't own this store!")
+      return sendError(res, next, 403, "Access forbidden: yoy don't own this store!")
     }
 
-    // now files are in req.files not in req.body which is coming from multer, if no files it will be empty
+    // Validate images
     if (!req.files || req.files.length < 3) {
-      return sendError(res,next, 400, "At least 3 images are required")
+      return sendError(res, next, 400, "At least 3 images are required")
     }
 
     if (req.files.length > 5) {
-      return sendError(res,next, 400, "Maximum 5 images allowed!")
+      return sendError(res, next, 400, "Maximum 5 images allowed!")
     }
 
-    // upload to cloudinary: map the files and return a promise for eaach upload
-    const uploadPromises = req.files.map(file=> uploadToCloudinary(file.buffer))
+    // Upload to cloudinary
+    const uploadPromises = req.files.map(file => uploadToCloudinary(file.buffer))
 
-    // we will wait for all upload to finish. images will be an array of objects {url:.., publicId:..,}
     const images = await Promise.all(uploadPromises)
 
-    //create product in database
+    // Create product
     const product = await Product.create({
       productName,
       description,
@@ -61,14 +60,14 @@ const createProduct = async (req,res,next) => {
     });
 
     res.status(201).json(product)
-    
+
   } catch (error) {
     console.error(error)
     return sendError(res, next, 400, error.message || "Product creation failed!")
   }
 }
 
-// read the product means get the product info for the user to see the product details
+// Get product details (public)
 const getProductDetailsToUser = async (req, res, next) => {
   try {
     const productId = req.params.id;
@@ -94,38 +93,35 @@ const getAdminProductDetails = async (req, res) => {
   res.status(200).json(adminProductData);
 };
 
-// update product details (Uses req.product from middleware)
+// Update product
 const updateProductDetails = async (req, res, next) => {
   // req.product is guaranteed by the 'isStoreOwner' middleware
   const product = req.product;
 
   try {
-    // A. Update Text Fields
-    // We explicitly exclude 'images' from req.body to prevent overwriting the array with text data
-    const { images, ...textData } = req.body; 
+    // Update text fields (exclude images)
+    const { images, ...textData } = req.body;
     Object.assign(product, textData);
 
-    // B. Handle NEW Images (if any were uploaded)
+    // Handle new images
     if (req.files && req.files.length > 0) {
-      
-      // FIX IS HERE: Use '?.' to safely access length, default to 0 if undefined
       const currentImageCount = product.images?.length || 0;
       const newImageCount = req.files.length;
-      
+
       if (currentImageCount + newImageCount > 5) {
         return sendError(res, next, 400, `You have ${currentImageCount} images. You can only add ${5 - currentImageCount} more.`);
       }
 
-      // 1. Upload New Images
+      // Upload new images
       const uploadPromises = req.files.map(file => uploadToCloudinary(file.buffer));
       const newImages = await Promise.all(uploadPromises);
 
-      // 2. Add to existing images array (Initialize if undefined)
+      // Add to existing images
       if (!product.images) product.images = [];
       product.images.push(...newImages);
     }
 
-    // C. Save
+    // Save
     await product.save();
     res.status(200).json(product);
 
@@ -136,9 +132,9 @@ const updateProductDetails = async (req, res, next) => {
 };
 
 // delete product (Uses req.product from middleware)
-const deleteProduct = async (req,res,next) => {
+const deleteProduct = async (req, res, next) => {
   const product = req.product;
-  
+
   try {
     if (product.images && product.images.length > 0) {
       const deletePromises = product.images.map(image => {
@@ -155,7 +151,7 @@ const deleteProduct = async (req,res,next) => {
 
     res.status(200).json({
       message: "Product delete from database and cloudinary.",
-      deleteId: product._id 
+      deleteId: product._id
     })
   } catch (error) {
     console.error(error)
@@ -184,7 +180,7 @@ const getAllProducts = async (req, res, next) => {
       filter.productType = productType;
     }
 
-    // $gte = greater than equal to and $lte = less than equal to
+    // Price filter
     let priceFilter = {};
     if (minPrice) {
       priceFilter.$gte = parseFloat(minPrice);
@@ -197,7 +193,7 @@ const getAllProducts = async (req, res, next) => {
       filter.salePrice = priceFilter;
     }
 
-    // implementing search functionaliy
+    // Search filter
     if (search) {
       filter.$or = [
         { productName: { $regex: search, $options: "i" } },
@@ -205,12 +201,12 @@ const getAllProducts = async (req, res, next) => {
       ];
     }
 
-    // pagination setup
+    // Pagination
     const pageNumber = parseInt(page) || 1;
     const pageLimit = parseInt(limit) || 10; // we already initiate req.query so now i am using the varaibles directly
     const skip = (pageNumber - 1) * pageLimit; // It will throw me on 1st page or 0th index
 
-    // sorting functions:
+    // Sorting
     let sortOption = {};
     if (sort === "priceAsc") {
       sortOption.salePrice = 1;
@@ -234,7 +230,7 @@ const getAllProducts = async (req, res, next) => {
       sortOption.createdAt = -1;
     }
 
-    // Fetch fo r pagination
+    // Fetch products
     const total = await Product.countDocuments(filter);
     const totalPages = Math.ceil(total / pageLimit);
 
@@ -261,7 +257,7 @@ const getAllProducts = async (req, res, next) => {
   }
 };
 
-// specific to that sotere producs
+// Get store products (admin)
 const getStoreProducts = async (req, res, next) => {
   try {
     const store = await Store.findOne({ owner: req.user.id });
@@ -274,7 +270,7 @@ const getStoreProducts = async (req, res, next) => {
     const { productType, search, page, limit, sort, stockStatus, dateAfter } =
       req.query;
 
-    // show only a particular store products
+    // Filter by store
     let filter = { store: storeId };
 
     if (productType) {
@@ -295,7 +291,7 @@ const getStoreProducts = async (req, res, next) => {
       filter.stock = { $gt: 0, $lte: 5 };
     }
 
-    // feature for filtering accodng to some kind of date
+    // Date filter
     if (dateAfter) {
       try {
         filter.createdAt = { $gte: new Date(dateAfter) };
@@ -304,19 +300,19 @@ const getStoreProducts = async (req, res, next) => {
       }
     }
 
-    //  Pagination and Sorting like the getallproducts functionality
+    // Pagination and sorting
     const pageNumber = parseInt(page) || 1;
     const pageLimit = parseInt(limit) || 10;
     const skip = (pageNumber - 1) * pageLimit;
 
     let sortOption = {};
-    // Admin often needs to sort by inventory for management purposes
+    // Admin sort options
     if (sort === "stockAsc") sortOption.stock = 1;
     else if (sort === "stockDesc") sortOption.stock = -1;
     else if (sort === "discount") sortOption.discountPercentage = -1;
     else sortOption.createdAt = -1;
 
-    // main logic for fetching the products
+    // Fetch products
     const total = await Product.countDocuments(filter);
     const totalPages = Math.ceil(total / pageLimit);
 
@@ -351,8 +347,7 @@ const getStoreAnalytics = async (req, res, next) => {
 
     const storeId = store._id;
 
-    // about inventory ( Product Aggregation)
-    // i am using mongoDb aggregation pipelines here
+    // Inventory stats
     const stockSummary = await Product.aggregate([
       { $match: { store: storeId } },
       {
@@ -383,7 +378,7 @@ const getStoreAnalytics = async (req, res, next) => {
       },
     ]);
 
-    // sales summary and monthly revenue (Order Aggregation)
+    // Sales stats
     const salesData = await Order.aggregate([
       { $unwind: "$orderItems" },
       {
