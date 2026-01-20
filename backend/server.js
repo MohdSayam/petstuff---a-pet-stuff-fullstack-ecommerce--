@@ -36,18 +36,27 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Start server if run directly (Local Development)
+// Local Development
 if (require.main === module) {
   const startServer = async () => {
-    await connectDB();
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    try {
+      await connectDB();
+      app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    } catch (error) {
+      console.error("Failed to connect to DB locally:", error);
+    }
   };
   startServer();
-} else {
-  // For Vercel / Serverless to work we must connect to DB
-  // Mongoose handles buffering so we can call this
-  connectDB();
-}
+};
 
+// We add a middleware to ensure DB is connected before EVERY request
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        console.error("Database Connection Failed in Middleware:", error);
+        res.status(500).json({ error: "Database Connection Failed" });
+    }
+});
 module.exports = app;
