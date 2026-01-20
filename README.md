@@ -65,8 +65,8 @@ To run this project, you need to configure the following environment variables.
 | `MONGO_URI` | MongoDB Connection String |
 | `JWT_SECRET` | Secret key for JWT signing |
 | `CLOUDINARY_URL` | Cloudinary API URL |
-| `EMAIL_USERNAME` Nodemailer Email |
-| `EMAIL_PASSWORD` 16 Digits App Password Created By Google |
+| `EMAIL_USERNAME` | Nodemailer Email |
+| `EMAIL_PASSWORD` | 16 Digits App Password Created By Google |
 | `GOOGLE_CLIENT_ID` | Google OAuth Client ID |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret |
 | `GOOGLE_CALLBACK_URL` | Google Callback URL |
