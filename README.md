@@ -6,8 +6,8 @@
 
 ##  Live Demo
 
--  [Frontend Live Link](petstuff-a-pet-stuff-fullstack-ecom.vercel.app)
--  [Backend Live Link](petstuff-backend.vercel.app)
+-  [Frontend Live Link](https://petstuff-a-pet-stuff-fullstack-ecom.vercel.app)
+-  [Backend Live Link](https://petstuff-backend.vercel.app/)
 
 ---
 
