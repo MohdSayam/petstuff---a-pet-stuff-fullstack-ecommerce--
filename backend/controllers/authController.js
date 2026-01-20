@@ -46,7 +46,7 @@ const registerUser = async (req, res, next) => {
     await newUser.save();
 
     // Build verification URL
-    const verifyUrl = `http://localhost:5173/verify-email/${verifyToken}`;
+    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email/${verifyToken}`;
 
     const message = `Welcome to PetStuff! 🐾\n\nPlease verify your email by clicking the link below:\n\n${verifyUrl}\n\nThis link expires in 24 hours.`;
 
@@ -313,7 +313,7 @@ const resendVerificationEmail = async (req, res, next) => {
     user.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
     await user.save();
 
-    const verifyUrl = `http://localhost:5173/verify-email/${verifyToken}`;
+    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email/${verifyToken}`;
     const message = `Hi ${user.name}! 🐾\n\nPlease verify your email by clicking the link below:\n\n${verifyUrl}\n\nThis link expires in 24 hours.`;
 
     await sendEmail({
@@ -371,7 +371,7 @@ const forgotPassword = async (req, res, next) => {
     await user.save();
 
     // Build reset URL
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
     const message = `Hi ${user.name}! 🐾\n\nYou requested a password reset. Click the link below to set a new password:\n\n${resetUrl}\n\nThis link expires in 1 hour.\n\nIf you didn't request this, please ignore this email.`;
 

@@ -147,7 +147,7 @@ function Register() {
 
             {/* Google Sign-in Button */}
             <a
-                href="http://localhost:8080/api/auth/google"
+                href={`${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/auth/google`}
                 className="w-full flex items-center justify-center gap-3 rounded-2xl py-4 font-bold text-slate-700 bg-white border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
             >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
