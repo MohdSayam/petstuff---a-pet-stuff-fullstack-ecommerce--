@@ -186,7 +186,7 @@ function OrdersDetailsPage() {
                                         <p className="text-xs font-bold text-slate-400">Qty: {item.quantity}</p>
                                     </div>
                                 </div>
-                                <span className="font-bold text-slate-900">${item.price}</span>
+                                <span className="font-bold text-slate-900">₹{item.price}</span>
                             </div>
                         ))}
                     </div>
