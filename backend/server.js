@@ -15,6 +15,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get('/api/debug-env', (req, res) => {
+  res.json({
+    // We only check if it exists, don't show the real password!
+    hasMongoUri: !!process.env.MONGO_URI, 
+    mongoLength: process.env.MONGO_URI ? process.env.MONGO_URI.length : 0,
+    nodeEnv: process.env.NODE_ENV
+  });
+});
 // Passport for OAuth
 app.use(passport.initialize());
 
