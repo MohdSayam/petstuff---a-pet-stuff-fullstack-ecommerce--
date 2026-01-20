@@ -1,23 +1,19 @@
 # PetStuff - Fullstack E-Commerce Platform 🐾
 
-![PetStuff Banner](https://via.placeholder.com/1200x400?text=PetStuff+Banner+-+Screenshot+Here)
-
 **PetStuff** is a modern, full-stack e-commerce application designed for pet owners. It features a seamless shopping experience, secure authentication, and a powerful admin dashboard for store management. Built with the **MERN Stack** (MongoDB, Express, React, Node.js), this project demonstrates scalable architecture and user-centric design.
 
 ---
 
-## 🚀 Live Demo
+##  Live Demo
 
-- **Frontend**: [Link to Vercel Frontend Deployment]
-- **Backend**: [Link to Vercel Backend Deployment]
-
-*(Note: Replace these links after deployment!)*
+- **Frontend**: [petstuff-a-pet-stuff-fullstack-ecom.vercel.app]
+- **Backend**: [petstuff-backend.vercel.app]
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
-### 🛍️ Customer Experience
+###  Customer Experience
 - **Responsive Design**: Mobile-first UI built with **Tailwind CSS**.
 - **User Authentication**: Secure signup/login via Email & **Google OAuth**.
 - **Product Discovery**: Search, filter, and view detailed product information.
@@ -25,34 +21,35 @@
 - **Order Management**: Track order status and view history.
 - **Profile Management**: Update personal details and password securely.
 
-> ![Screenshot of Home Page](https://via.placeholder.com/800x450?text=Screenshot+of+Home+Page)
-> *Home Page displaying featured products*
 
-### 🛡️ Admin Dashboard
+###  Admin Dashboard
 - **Product Management**: Create, edit, and delete products with image uploads (**Cloudinary**).
 - **Store Management**: Manage store details and settings.
 - **Order Analytics**: Visualize sales data and order statuses.
 - **Role-Based Access**: Secure admin-only routes and actions.
 
-> ![Screenshot of Admin Dashboard](https://via.placeholder.com/800x450?text=Screenshot+of+Admin+Dashboard)
-> *Admin Dashboard for managing store inventory*
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) **React.js** (Vite)
-- ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white) **Tailwind CSS**
-- ![Redux](https://img.shields.io/badge/Context_API-000000?style=for-the-badge&logo=react&logoColor=white) **Context API** (State Management)
+- **React.js** (Vite)
+- **Tailwind CSS**
+- **Context API** (State Management)
 - **Axios** (API Integration)
+- **React-hot-toast** (To show toasts to the user)
+- **Lucide-react** (For Icons)
+- **Recharts** (To deal with admin analytics chart)
 
 ### Backend
-- ![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white) **Node.js** & **Express.js**
-- ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white) **MongoDB** (Database)
-- ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=white) **JWT** (Authentication)
+- **Node.js** & **Express.js**
+- **MongoDB** (Database)
+- **JWT** (Authentication)
 - **Passport.js** (Google OAuth)
+- **Nodemailer** (Email verification)
 - **Cloudinary** (Image Storage)
+- **Multer** (As a gatekeeper)
 
 ---
 
@@ -68,8 +65,11 @@ To run this project, you need to configure the following environment variables.
 | `MONGO_URI` | MongoDB Connection String |
 | `JWT_SECRET` | Secret key for JWT signing |
 | `CLOUDINARY_URL` | Cloudinary API URL |
+| `EMAIL_USERNAME` Nodemailer Email |
+| `EMAIL_PASSWORD` 16 Digits App Password Created By Google |
 | `GOOGLE_CLIENT_ID` | Google OAuth Client ID |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret |
+| `GOOGLE_CALLBACK_URL` | Google Callback URL |
 | `FRONTEND_URL` | URL of the frontend (e.g., `http://localhost:5173` or Vercel URL) |
 
 ### Frontend (`/frontend/.env`)
@@ -80,7 +80,7 @@ To run this project, you need to configure the following environment variables.
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - Node.js (v18+)
@@ -90,7 +90,7 @@ To run this project, you need to configure the following environment variables.
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/petstuff.git
+   git clone https://github.com/MohdSayam/petstuff---a-pet-stuff-fullstack-ecommerce--.git
    cd petstuff
    ```
 
@@ -134,11 +134,11 @@ This project is deployed using the "Chicken and Egg" strategy to handle circular
 
 ---
 
-## 👨‍💻 Author
+## 👨 Author
 
 **Mohd Sayam**  
-- [GitHub Profile](https://github.com/Start-sys)
-- [LinkedIn](#)
+- [GitHub Profile](https://github.com/MohdSayam)
+- [LinkedIn](www.linkedin.com/in/mohd-sayam-b29106322)
 
 ---
 
