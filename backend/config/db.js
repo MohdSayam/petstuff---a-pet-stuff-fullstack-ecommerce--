@@ -18,6 +18,7 @@ const connectDB = async () => {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false, // Important for Serverless
+      serverSelectionTimeoutMS: 5000,
     };
 
     console.log("⏳ Connecting to MongoDB...");
