@@ -8,6 +8,8 @@
 
 -  [Frontend Live Link](https://petstuff-a-pet-stuff-fullstack-ecom.vercel.app)
 -  [Backend Live Link](https://petstuff-backend.vercel.app/)
+-  [Project Details Document](https://drive.google.com/file/d/1sQ8JMZ0p7BRa-r3xGKrIGMSRWjc05ksY/view?usp=sharing)
+-  [Live Demo Video](https://youtu.be/V12FLbvmKPc)
 
 ---
 
