@@ -134,7 +134,7 @@ This project is deployed using the "Chicken and Egg" strategy to handle circular
 
 ---
 
-## 👨 Author
+## 👨 Author 💻
 
 **Mohd Sayam**  
 - [GitHub Profile](https://github.com/MohdSayam)
