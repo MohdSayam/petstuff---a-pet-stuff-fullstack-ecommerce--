@@ -17,7 +17,7 @@ const ProductFilter = ({ isOpen, toggleSidebar }) => {
   const animalTypes = ["Dog", "Cat", "Bird", "Other"];
 
   return (
-    <aside className={`fixed inset-y-0 left-0 z-50 w-80 bg-white border-r border-slate-100 p-6 transform transition-transform lg:static lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto`}>
+    <aside className={`fixed inset-y-0 left-0 z-50 w-80 shrink-0 bg-white border-r border-slate-100 p-6 transform transition-transform overflow-y-auto lg:sticky lg:inset-auto lg:top-[136px] lg:h-[calc(100vh-136px)] lg:z-10 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       
       {/* Mobile Header */}
       <div className="flex items-center justify-between mb-8 lg:hidden">
@@ -108,7 +108,7 @@ const ProductFilter = ({ isOpen, toggleSidebar }) => {
           <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Price Range</h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
                 <input 
                     type="number" 
                     placeholder="Min" 
@@ -117,7 +117,7 @@ const ProductFilter = ({ isOpen, toggleSidebar }) => {
                 />
             </div>
             <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
                 <input 
                     type="number" 
                     placeholder="Max" 

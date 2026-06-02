@@ -198,7 +198,7 @@ function CheckoutPage() {
                                             required
                                             value={shippingInfo.city}
                                             onChange={handleChange}
-                                            placeholder="New York"
+                                            placeholder="Mumbai"
                                             className="w-full bg-slate-50 border-2 border-transparent focus:border-brand-primary/20 rounded-2xl p-4 font-bold outline-none transition-all"
                                         />
                                     </div>
@@ -223,7 +223,7 @@ function CheckoutPage() {
                                         required
                                         value={shippingInfo.country}
                                         onChange={handleChange}
-                                        placeholder="USA"
+                                        placeholder="India"
                                         className="w-full bg-slate-50 border-2 border-transparent focus:border-brand-primary/20 rounded-2xl p-4 font-bold outline-none transition-all"
                                     />
                                 </div>
@@ -359,7 +359,7 @@ function CheckoutPage() {
                             {paymentMethod === 'cod' && (
                                 <div className="bg-slate-50 p-4 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300">
                                     <p className="text-sm text-slate-600 font-medium">
-                                        Pay with cash when your order is delivered. Additional ₹40 handling fee may apply.
+                                        Pay with cash when your order is delivered. Standard shipping charges apply (FREE on orders above ₹500).
                                     </p>
                                 </div>
                             )}
@@ -369,7 +369,7 @@ function CheckoutPage() {
 
                 {/* RIGHT: Order Summary */}
                 <div className="w-full lg:w-100">
-                    <div className="bg-slate-900 text-white p-8 rounded-[40px] sticky top-28 shadow-2xl shadow-slate-900/20">
+                    <div className="bg-slate-900 text-white p-8 rounded-[40px] sticky top-[136px] shadow-2xl shadow-slate-900/20">
                         <h2 className="text-xl font-black uppercase tracking-widest mb-8">Order Summary</h2>
 
                         <div className="space-y-4 mb-8">

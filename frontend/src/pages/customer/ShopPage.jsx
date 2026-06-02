@@ -34,7 +34,7 @@ const ShopPage = () => {
     }, [searchParams]);
 
     return (
-        <div className="flex w-full min-h-screen bg-white">
+        <div className="flex w-full min-h-screen bg-white items-start">
 
             {/* 1. LEFT SIDEBAR (Filter) */}
             <ProductFilter

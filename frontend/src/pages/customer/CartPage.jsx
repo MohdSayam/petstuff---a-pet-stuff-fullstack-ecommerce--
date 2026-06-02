@@ -170,7 +170,7 @@ const CartPage = () => {
 
                 {/* RIGHT: ORDER SUMMARY */}
                 <div className="lg:w-96">
-                    <div className="bg-slate-50 p-6 rounded-3xl sticky top-24 border border-slate-100">
+                    <div className="bg-slate-50 p-6 rounded-3xl sticky top-[136px] border border-slate-100">
                         <h2 className="text-lg font-black uppercase text-slate-900 mb-6">Order Summary</h2>
 
                         {/* Selected Items Summary */}
