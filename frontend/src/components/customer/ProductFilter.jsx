@@ -17,7 +17,7 @@ const ProductFilter = ({ isOpen, toggleSidebar }) => {
   const animalTypes = ["Dog", "Cat", "Bird", "Other"];
 
   return (
-    <aside className={`fixed inset-y-0 left-0 z-50 w-80 bg-white border-r border-slate-100 p-6 transform transition-transform lg:relative lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto`}>
+    <aside className={`fixed inset-y-0 left-0 z-50 w-80 bg-white border-r border-slate-100 p-6 transform transition-transform lg:static lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto`}>
       
       {/* Mobile Header */}
       <div className="flex items-center justify-between mb-8 lg:hidden">

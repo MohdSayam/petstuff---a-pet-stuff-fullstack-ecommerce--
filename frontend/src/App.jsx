@@ -6,7 +6,7 @@ import UserLayout from "./components/layout/UserLayout.jsx";
 import UserRoute from "./components/common/UserRoute.jsx";
 import AdminLayout from "./components/layout/AdminLayout.jsx";
 import AdminRoute from "./components/common/AdminRoute.jsx";
-import AuthLayout from "./components/layout/AuthLayout.jsx"; // IMPORT THIS
+import AuthLayout from "./components/layout/AuthLayout.jsx"; 
 
 // Pages
 import Home from "./pages/Home";
@@ -28,7 +28,7 @@ import CheckEmail from "./pages/CheckEmail.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 
-// Admin Pages... (Keep your imports)
+// Admin Pages... 
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminStore from "./pages/admin/AdminStore.jsx";
 import CreateStoreForm from "./pages/admin/CreateStoreForm.jsx";
