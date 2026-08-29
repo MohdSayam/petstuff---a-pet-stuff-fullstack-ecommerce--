@@ -47,6 +47,22 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Keep-alive endpoint to prevent MongoDB free tier from pausing
+app.get("/api/keep-alive", async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState === 1) {
+      await mongoose.connection.db.admin().ping();
+      return res.status(200).json({ message: "Database keep-alive ping successful" });
+    } else {
+      return res.status(500).json({ error: "Database not connected" });
+    }
+  } catch (error) {
+    console.error("Keep-alive ping failed:", error);
+    res.status(500).json({ error: "Keep-alive ping failed" });
+  }
+});
+
 // auth routes
 app.use("/api/auth", require("./routes/authRoutes"));
 
